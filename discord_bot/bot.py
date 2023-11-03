@@ -27,10 +27,16 @@ def get_bot() -> commands.Bot:
     intents.message_content = True
     bot = commands.Bot(command_prefix=".", intents=intents)
     bot.help_command = HelpCommand()
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
 
     @bot.event
     async def on_ready():
-        logging.debug(f"We have logged in as {bot.user}")
+        logger.info(f"We have logged in as {bot.user}")
+
+    @bot.event
+    async def on_command(ctx: commands.Context):
+        logger.info(f"Command received by {ctx.author.name}: {ctx.message.content}")
 
     @bot.command(
         name="пинг",
