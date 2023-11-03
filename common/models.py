@@ -18,8 +18,8 @@ class Character(BaseModel):
     ap = peewee.IntegerField(default=100, null=True)
     max_ap = peewee.IntegerField(default=100, null=True)
 
-    coordX = peewee.IntegerField(null=True)
-    coordY = peewee.IntegerField(null=True)
+    coord_x = peewee.IntegerField(null=True)
+    coord_y = peewee.IntegerField(null=True)
     layer = peewee.IntegerField(default=0, null=True)
 
     sizeX = peewee.IntegerField(default=4)
@@ -27,10 +27,12 @@ class Character(BaseModel):
     height = peewee.IntegerField(default=2)
 
     inventory = peewee.CharField(default="{}")
-    inventorySize = peewee.IntegerField(default=10)
+    inventory_size = peewee.IntegerField(default=10)
 
     abilities = peewee.CharField(default="{}")
-    maxAbilities = peewee.IntegerField(default=10)
+    max_abilities = peewee.IntegerField(default=10)
+
+    in_game = peewee.BooleanField(default=False)
 
     effects = peewee.CharField(default="{}")
     extra = peewee.CharField(default="{}")
