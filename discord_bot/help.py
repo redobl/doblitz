@@ -1,6 +1,17 @@
 from discord.ext import commands
 
 
+def usage_str(ctx):
+    command = ctx.command
+    if len(command.aliases) > 0:
+        aliases = "|".join(command.aliases)
+        return (
+            f"Использование: `{ctx.prefix}[{command.name}|{aliases}] {command.usage}`"
+        )
+    else:
+        return f"Использование: `{ctx.prefix}{command.name} {command.usage}`"
+
+
 class HelpCommand(commands.DefaultHelpCommand):
     def get_ending_note(self) -> str:
         return (

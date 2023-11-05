@@ -2,6 +2,15 @@ from common.misc import BaseArbitraryModel
 from common.models import CharacterModel
 
 
+class Game(BaseArbitraryModel):
+    in_game_chars: list["Character"]
+
+    @classmethod
+    def sync(cls):
+        in_game_chars = list(Character.select(CharacterModel.in_game == True))
+        cls.in_game_chars = in_game_chars
+
+
 class Player(BaseArbitraryModel):
     id: int
 
@@ -44,3 +53,15 @@ class Character(BaseArbitraryModel):
 
     def delete(self):
         self.model.delete_instance()
+        if self.model.in_game:
+            Game.in_game_chars.remove(self)
+
+    def join_game(self):
+        self.model.in_game = True
+        self.model.save()
+        Game.in_game_chars.append(self)
+
+    def leave_game(self):
+        self.model.in_game = False
+        self.model.save()
+        Game.in_game_chars.remove(self)
