@@ -8,7 +8,7 @@ class BaseModel(peewee.Model):
         database = db
 
 
-class Character(BaseModel):
+class CharacterModel(BaseModel):
     name = peewee.CharField()
     player_id = peewee.IntegerField(null=True, index=True)
     active = peewee.BooleanField(default=True)
@@ -41,5 +41,5 @@ class Character(BaseModel):
 def init_db(path: str) -> peewee.Database:
     db.init(database=path)
     db.connect()
-    db.create_tables((Character,))
+    db.create_tables((CharacterModel,))
     return db
