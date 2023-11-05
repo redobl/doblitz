@@ -4,11 +4,10 @@ import discord
 import peewee
 from discord.ext import commands
 
-from common.models import Character
+from common.game import Character, Player
+from common.models import CharacterModel, db
 
 from .help import HelpCommand
-
-db = Character._meta.database
 
 
 def usage_str(ctx):
@@ -55,19 +54,18 @@ def get_bot() -> commands.Bot:
         usage="<имя персонажа>",
     )
     async def create(ctx, *args):
+        player = Player(id=ctx.author.id)
+        if len(args) != 1:
+            await ctx.send(usage_str(ctx))
+            return
+        name = args[0]
         with db.atomic():
-            if len(args) != 1:
-                await ctx.send(usage_str(ctx))
-                return
-            name = args[0]
-            character_count = (
-                Character.select().where(Character.player_id == ctx.author.id).count()
-            )
+            character_count = player.count_characters()
             if character_count == 0:
-                character = Character.create(name=name, player_id=ctx.author.id)
+                player.create_character(name=name)
                 await ctx.send(f"Персонаж {name} создан.")
             elif character_count == 1:
-                character = Character.get(Character.player_id == ctx.author.id)
+                character = player.get_character()
                 await ctx.send(f"У вас уже есть персонаж {character.name}.")
             else:
                 await ctx.send("У вас уже есть персонажи.")
@@ -80,32 +78,30 @@ def get_bot() -> commands.Bot:
         usage="[имя персонажа]",
     )
     async def delete(ctx, *args):
-        with db.atomic():
-            if len(args) > 1:
-                await ctx.send(usage_str(ctx))
-                return
-            character_count = (
-                Character.select().where(Character.player_id == ctx.author.id).count()
-            )
-            if character_count == 0:
-                await ctx.send("У вас нет персонажей.")
-                return
-            if character_count == 1:
-                character = Character.get(Character.player_id == ctx.author.id)
-                character.delete_instance()
-                await ctx.send(f"Персонаж {character.name} удален.")
-                return
-            if len(args) == 0:
-                await ctx.send("У вас несколько персонажей. " + usage_str(ctx))
-                return
+        player = Player(id=ctx.author.id)
+        if len(args) > 1:
+            await ctx.send(usage_str(ctx))
+            return
+        elif len(args) == 1:
             name = args[0]
-            try:
-                character = Character.get(
-                    Character.player_id == ctx.author.id, Character.name == name
-                )
-                character.delete_instance()
-                await ctx.send(f"Персонаж {character.name} удалён.")
-            except peewee.DoesNotExist:
-                await ctx.send(f"Персонаж {name} не найден.")
+            with db.atomic():
+                try:
+                    character = player.get_character(CharacterModel.name == name)
+                    character.delete()
+                    await ctx.send(f"Персонаж {character.name} удалён.")
+                except peewee.DoesNotExist:
+                    await ctx.send(f"Персонаж {name} не найден.")
+        else:
+            with db.atomic():
+                character_count = player.count_characters()
+                if character_count == 0:
+                    await ctx.send("У вас нет персонажей.")
+                    return
+                if character_count == 1:
+                    character = player.get_character()
+                    character.delete()
+                    await ctx.send(f"Персонаж {character.name} удален.")
+                    return
+                await ctx.send("У вас несколько персонажей. " + usage_str(ctx))
 
     return bot
