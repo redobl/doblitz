@@ -1,14 +1,10 @@
-import logging
-
-import discord
 import peewee
 from discord.ext import commands
 
-from common.game import Character, Game, Player
+from common.game import Player
 from common.models import CharacterModel, db
 
-from ..help import HelpCommand, usage_str
-from .character import CharacterCog
+from ..help import usage_str
 
 
 class GameCog(commands.Cog, name="Игра"):
