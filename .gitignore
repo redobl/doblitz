@@ -1,5 +1,7 @@
-**/.venv
-**/__pycache__
 GUI/rooms
 GUI/*.tmx
 GUI/worldmap.png
+config.ini
+db.sqlite
+__pycache__
+.venv
