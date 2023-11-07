@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 
 from .cogs.character import CharacterCog
+from .cogs.debug import DebugCog
 from .cogs.game import GameCog
 from .help import HelpCommand
 
@@ -38,6 +39,6 @@ def get_bot() -> commands.Bot:
 
 
 async def prepare_bot(bot):
-    cogs = (CharacterCog, GameCog)
+    cogs = (CharacterCog, GameCog, DebugCog)
     for cog in cogs:
         await bot.add_cog(cog())

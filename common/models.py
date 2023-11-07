@@ -1,6 +1,7 @@
 import peewee
+from playhouse.sqlite_ext import AutoIncrementField, SqliteExtDatabase
 
-db = peewee.SqliteDatabase(None)
+db = SqliteExtDatabase(None)
 
 
 class BaseModel(peewee.Model):
@@ -8,15 +9,18 @@ class BaseModel(peewee.Model):
         database = db
 
 
-class CharacterModel(BaseModel):
-    name = peewee.CharField()
-    player_id = peewee.IntegerField(null=True, index=True)
-    active = peewee.BooleanField(default=True)
+class GameObjectModel(BaseModel):
+    id = AutoIncrementField()
+    name = peewee.CharField(null=True, index=True)
+    description = peewee.CharField(null=True)
 
-    hp = peewee.IntegerField(default=100, null=True)
-    max_hp = peewee.IntegerField(default=100, null=True)
-    ap = peewee.IntegerField(default=100, null=True)
-    max_ap = peewee.IntegerField(default=100, null=True)
+    effects = peewee.CharField(default="{}")
+    extra = peewee.CharField(default="{}")
+
+
+class MapObjectModel(GameObjectModel):
+    obj_type = peewee.CharField(null=True, index=True)
+    obj_id = peewee.IntegerField(null=True, index=True)
 
     coord_x = peewee.IntegerField(null=True)
     coord_y = peewee.IntegerField(null=True)
@@ -24,7 +28,18 @@ class CharacterModel(BaseModel):
 
     sizeX = peewee.IntegerField(default=4)
     sizeY = peewee.IntegerField(default=4)
-    height = peewee.IntegerField(default=2)
+    height = peewee.IntegerField(default=0)
+
+
+class CharacterModel(GameObjectModel):
+    name = peewee.CharField(index=True)
+    player_id = peewee.IntegerField(null=True, index=True)
+    active = peewee.BooleanField(default=True)
+
+    hp = peewee.IntegerField(default=100, null=True)
+    max_hp = peewee.IntegerField(default=100, null=True)
+    ap = peewee.IntegerField(default=100, null=True)
+    max_ap = peewee.IntegerField(default=100, null=True)
 
     inventory = peewee.CharField(default="{}")
     inventory_size = peewee.IntegerField(default=10)
@@ -34,12 +49,9 @@ class CharacterModel(BaseModel):
 
     in_game = peewee.BooleanField(default=False)
 
-    effects = peewee.CharField(default="{}")
-    extra = peewee.CharField(default="{}")
-
 
 def init_db(path: str) -> peewee.Database:
     db.init(database=path)
     db.connect()
-    db.create_tables((CharacterModel,))
+    db.create_tables((CharacterModel, MapObjectModel))
     return db
