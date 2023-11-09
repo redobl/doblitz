@@ -286,9 +286,3 @@ class TileMap(Widget):
         except Exception:
             print("layer is invalid")
             return None
-
-
-if __name__ == "__main__":
-    x = TileMap("GUI/instances.tmx")
-
-    x.draw_object_groups(["зоны"])
