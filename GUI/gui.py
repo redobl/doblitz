@@ -1,9 +1,9 @@
+import tiled_map_manager as map_manager
 from kivy.app import App
+from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
-from kivy.input.motionevent import MotionEvent
 from kivy.uix.scatterlayout import ScatterLayout
-import tiled_map_manager as map_manager
 
 Builder.load_file("GUI/view/map.kv")
 
@@ -23,7 +23,7 @@ class MapView(ScatterLayout):
     def on_touch_down(self, touch: MotionEvent):
         if touch.is_mouse_scrolling:
             if touch.button == "scrolldown":
-                self.scale = self.scale * 1.1
+                self.scale = self.scale * 1.25
             elif touch.button == "scrollup":
                 self.scale = self.scale * 0.8
 

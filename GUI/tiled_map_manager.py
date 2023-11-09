@@ -1,13 +1,12 @@
 import os
-import itertools
+from typing import Union
 
+import pytmx
 from kivy.core.image import Image as CoreImage
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Line, Rectangle
 from kivy.logger import Logger
 from kivy.properties import ListProperty
 from kivy.uix.widget import Widget
-
-import pytmx
 
 
 class KivyTiledMap(pytmx.TiledMap):
@@ -17,6 +16,8 @@ class KivyTiledMap(pytmx.TiledMap):
     """
 
     def __init__(self, map_file_path=None, *args, **kwargs):
+        if not os.path.exists(map_file_path):
+            raise FileNotFoundError(f"Map file {map_file_path} does not exist.")
         assert map_file_path, 'No map file provided, please provide the path to a .tmx file.'
         super(KivyTiledMap, self).__init__(map_file_path, *args, **kwargs)
 
@@ -99,7 +100,8 @@ class TileMap(Widget):
     scaled_tile_size = ListProperty()
 
     def __init__(self, map_file_path=None, **kwargs):
-        assert map_file_path, 'No map file path provided to TileMap. Please pass in a path to a .tmx file.q'
+        if not os.path.exists(map_file_path):
+            raise FileNotFoundError(f"Map file {map_file_path} does not exist.")
         self.tiled_map = KivyTiledMap(map_file_path)
         super(TileMap, self).__init__(**kwargs)
 
@@ -122,11 +124,8 @@ class TileMap(Widget):
         self.scaled_map_height = self.scaled_tile_size[1] * self.tile_map_size[1]
         self.on_size()
 
-    def on_size(self, *args):
-        Logger.debug('TileMap: Re-drawing')
-
-        screen_tile_size = self.get_root_window().width / 32
-        self.scaled_tile_size = (screen_tile_size, screen_tile_size)
+    def draw_map(self):
+        """This method should be called first because it clears the canvas"""
         self.scaled_map_width = self.scaled_tile_size[0] * self.tile_map_size[0]
         self.scaled_map_height = self.scaled_tile_size[1] * self.tile_map_size[1]
 
@@ -157,7 +156,78 @@ class TileMap(Widget):
 
                     # create a rectangle instruction for the gpu
                     Rectangle(texture=texture, pos=draw_pos, size=draw_size)
+
+                    # create a grid
+                    # TODO: optimize this
+                    Color(0, 0, 0)
+                    Line(dash_length=4, dash_offset=4, rectangle=(draw_pos[0], draw_pos[1], draw_size[0], draw_size[1]))
+                    Color(1, 1, 1) # reset color
+
                 layer_idx += 1
+
+    def draw_object_groups(self, object_groups: list[str]):
+        with self.canvas:
+            for objectgroup in self.tiled_map.layers:
+                if not isinstance(objectgroup, pytmx.TiledObjectGroup):
+                    continue
+                if not objectgroup.visible:
+                    continue
+
+                if objectgroup.name in object_groups:
+                    for object in objectgroup:
+                        Color(1, 0, 0)
+                        Line(
+                            width=2,
+                            dash_length=4,
+                            dash_offset=4,
+                            rectangle=(
+                                object.x, 
+                                self.scaled_map_height - object.y - object.height, 
+                                object.width, 
+                                object.height
+                            )
+                        )
+                        Color(1, 1, 1)
+
+    def draw_object_line(
+            self, 
+            object_x: int,
+            object_y: int,
+            object_width: int,
+            object_height: int,
+            line_width: float = 1.0,
+            color: tuple[float, float, float] = (0.0, 0.0, 0.0),
+            is_absolute_coord: bool = True):
+        """Draws the object at the given coordinates as the hollow rectangle.
+        The starting point is in the upper left corner, as in Tiled.
+
+        Args:
+            object_x (int): x coordinate
+            object_y (int): y coordinate
+            object_width (int): width of the object
+            object_height (int): height of the object
+            line_width (int): width of the line
+            color (tuple[float, float, float]): RGB from 0 to 1. Default is (0.0, 0.0, 0.0)
+            is_absolute_coord (bool, optional): Defaults to True
+        """
+        if not is_absolute_coord:
+            object_x = object_x * 32
+            object_y = object_y * 32
+        
+        with self.canvas:
+            Color(color[0], color[1], color[2])
+            Line(
+                width=line_width,
+                rectangle=(object_x, self.scaled_map_height - object_y - object_height, object_width, object_height)
+            )
+            Color(1, 1, 1)
+
+
+    def on_size(self, *args):
+        Logger.debug('TileMap: Re-drawing')
+
+        self.draw_map()
+        self.draw_object_groups(["зоны"])
 
     def _get_tile_pos(self, x, y):
         """Get the tile position relative to the widget."""
