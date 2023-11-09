@@ -30,6 +30,10 @@ class Player(BaseArbitraryModel):
 
 
 class GameObject(BaseArbitraryModel):
+    """
+    A game object with a database representation.
+    """
+
     model: GameObjectModel
 
     @classmethod
@@ -50,6 +54,12 @@ class GameObject(BaseArbitraryModel):
         return cls._from_model(model_type.get(*criteria))
 
     @classmethod
+    def get_or_create(cls, **kwargs) -> "GameObject":
+        model_type = get_type_hints(cls)["model"]
+        get_or_create_res = model_type.get_or_create(**kwargs)
+        return (cls._from_model(get_or_create_res[0]), get_or_create_res[1])
+
+    @classmethod
     def count(cls, *criteria) -> int:
         model_type = get_type_hints(cls)["model"]
         return model_type.select().where(*criteria).count()
@@ -65,17 +75,25 @@ class GameObject(BaseArbitraryModel):
 
 class Character(GameObject):
     model: CharacterModel
+    map_object: Optional["MapObject"]
+
+    @classmethod
+    def _from_model(cls, model: CharacterModel) -> "Character":
+        map_object = MapObject.get_or_create(
+            obj_type="character",
+            obj_id=model.id,
+            defaults={
+                "height": 2,
+            },
+        )[0]
+        return cls(model=model, map_object=map_object)
 
     def delete(self):
         if self.model.in_game:
             Game.in_game_chars.remove(self)
+        if self.map_object:
+            self.map_object.delete()
         return super().delete()
-
-    def get_mapobject(self):
-        return MapObject.get(
-            MapObjectModel.obj_type == "character",
-            MapObjectModel.obj_id == self.model.id,
-        )
 
     def join_game(self):
         self.model.in_game = True
@@ -89,25 +107,24 @@ class Character(GameObject):
 
 
 class MapObject(GameObject):
+    """
+    An object's representation on the map.
+    NOTE: Creation or deletion of a MapObject instance does not create
+    or delete a corresponding GameObject instance. Such methods should
+    be called on the GameObject instance instead.
+    """
+
     model: MapObjectModel
-    game_object: Optional[GameObject]
 
-    @classmethod
-    def _from_model(cls, model: GameObjectModel) -> GameObject:
-        if model.obj_type == "character":
-            game_object = Character.get(CharacterModel.id == model.obj_id)
-        else:
-            game_object = None
-        return cls(model=model, game_object=game_object)
-
-    def delete(self):
-        if self.game_object:
-            self.game_object.delete()
-        return super().delete()
+    def get_game_object(self) -> Optional[GameObject]:
+        if self.model.obj_type == "character":
+            return Character.get(CharacterModel.id == self.model.obj_id)
+        return None
 
     def get_display_name(self):
-        if self.game_object and self.game_object.model.name:
-            return self.game_object.model.name
         if self.model.name:
             return self.model.name
+        game_object = self.get_game_object()
+        if game_object and game_object.model.name:
+            return game_object.model.name
         return "Что-то"
