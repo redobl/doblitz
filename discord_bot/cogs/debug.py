@@ -6,9 +6,18 @@ from common.models import db
 
 
 class DebugCog(commands.Cog, name="Отладка"):
-    @commands.command(
-        name="список",
-        aliases=["list"],
+    @commands.group(
+        name="отладка",
+        aliases=["debug"],
+        help="Команды для отладки.",
+        brief="Группа команд для отладки",
+    )
+    async def debug(self, ctx):
+        pass
+
+    @debug.command(
+        name="карта",
+        aliases=["map"],
         help="Показывает список объектов на карте.",
         brief="Показывает список объектов на карте",
     )
