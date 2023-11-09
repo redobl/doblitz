@@ -71,6 +71,12 @@ class Character(GameObject):
             Game.in_game_chars.remove(self)
         return super().delete()
 
+    def get_mapobject(self):
+        return MapObject.get(
+            MapObjectModel.obj_type == "character",
+            MapObjectModel.obj_id == self.model.id,
+        )
+
     def join_game(self):
         self.model.in_game = True
         self.model.save()

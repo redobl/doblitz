@@ -20,37 +20,34 @@ class GameCog(commands.Cog, name="Игра"):
         if len(args) > 1:
             await ctx.send(usage_str(ctx))
             return
-        elif len(args) == 1:
-            name = args[0]
-            with db.atomic():
+        with db.atomic():
+            if len(args) == 1:
+                name = args[0]
                 try:
                     character = player.get_character(CharacterModel.name == name)
-                    if character.model.in_game:
-                        await ctx.send(f"Персонаж {character.model.name} уже в игре.")
-                    else:
-                        character.join_game()
-                        await ctx.send(
-                            f"Персонаж {character.model.name} входит в игру."
-                        )
                 except peewee.DoesNotExist:
                     await ctx.send(f"Персонаж {name} не найден.")
-        else:
-            with db.atomic():
+                    return
+            else:
                 character_count = player.count_characters()
                 if character_count == 0:
                     await ctx.send("У вас нет персонажей.")
                     return
-                if character_count == 1:
+                elif character_count == 1:
                     character = player.get_character()
-                    if character.model.in_game:
-                        await ctx.send(f"Персонаж {character.model.name} уже в игре.")
-                    else:
-                        character.join_game()
-                        await ctx.send(
-                            f"Персонаж {character.model.name} входит в игру."
-                        )
+                else:
+                    await ctx.send("У вас несколько персонажей. " + usage_str(ctx))
                     return
-                await ctx.send("У вас несколько персонажей. " + usage_str(ctx))
+            if character.model.in_game:
+                await ctx.send(f"Персонаж {character.model.name} уже в игре.")
+                return
+            try:
+                character.get_mapobject()
+            except peewee.DoesNotExist:
+                await ctx.send(f"Персонаж {character.model.name} не на карте.")
+            else:
+                character.join_game()
+                await ctx.send(f"Персонаж {character.model.name} входит в игру.")
 
     @commands.command(
         name="выйти",
@@ -64,34 +61,26 @@ class GameCog(commands.Cog, name="Игра"):
         if len(args) > 1:
             await ctx.send(usage_str(ctx))
             return
-        elif len(args) == 1:
-            name = args[0]
-            with db.atomic():
+        with db.atomic():
+            if len(args) == 1:
+                name = args[0]
                 try:
                     character = player.get_character(CharacterModel.name == name)
-                    if not character.model.in_game:
-                        await ctx.send(f"Персонаж {character.model.name} не в игре.")
-                    else:
-                        character.leave_game()
-                        await ctx.send(
-                            f"Персонаж {character.model.name} выходит из игры."
-                        )
                 except peewee.DoesNotExist:
                     await ctx.send(f"Персонаж {name} не найден.")
-        else:
-            with db.atomic():
+                    return
+            else:
                 character_count = player.count_characters()
                 if character_count == 0:
                     await ctx.send("У вас нет персонажей.")
                     return
-                if character_count == 1:
+                elif character_count == 1:
                     character = player.get_character()
-                    if not character.model.in_game:
-                        await ctx.send(f"Персонаж {character.model.name} не в игре.")
-                    else:
-                        character.leave_game()
-                        await ctx.send(
-                            f"Персонаж {character.model.name} выходит из игры."
-                        )
+                else:
+                    await ctx.send("У вас несколько персонажей. " + usage_str(ctx))
                     return
-                await ctx.send("У вас несколько персонажей. " + usage_str(ctx))
+            if not character.model.in_game:
+                await ctx.send(f"Персонаж {character.model.name} не в игре.")
+            else:
+                character.leave_game()
+                await ctx.send(f"Персонаж {character.model.name} выходит из игры.")
