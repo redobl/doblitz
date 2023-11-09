@@ -42,8 +42,11 @@ class GameCog(commands.Cog, name="Игра"):
                 await ctx.send(f"Персонаж {character.model.name} уже в игре.")
                 return
             try:
-                character.get_mapobject()
+                mapobject = character.get_mapobject()
             except peewee.DoesNotExist:
+                await ctx.send(f"Персонаж {character.model.name} не на карте.")
+                return
+            if mapobject.model.coord_x is None or mapobject.model.coord_y is None:
                 await ctx.send(f"Персонаж {character.model.name} не на карте.")
             else:
                 character.join_game()
