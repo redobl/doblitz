@@ -23,7 +23,7 @@ class MapView(ScatterLayout):
     def on_touch_down(self, touch: MotionEvent):
         if touch.is_mouse_scrolling:
             if touch.button == "scrolldown":
-                self.scale = self.scale * 1.2
+                self.scale = self.scale * 1.25
             elif touch.button == "scrollup":
                 self.scale = self.scale * 0.8
 
