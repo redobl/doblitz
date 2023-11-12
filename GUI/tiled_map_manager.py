@@ -189,7 +189,7 @@ class TileMap(Widget):
                             bg_color=Color(1, 0, 0)
                         )
 
-    def draw_object_line(
+    def draw_object_rectangle(
             self, 
             object_x: int,
             object_y: int,

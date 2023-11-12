@@ -27,14 +27,13 @@ class MapView(ScatterLayout):
             elif touch.button == "scrollup":
                 self.scale = self.scale * 0.8
 
-        if touch.is_double_tap:
+        elif touch.is_double_tap:
             self.pos = (touch.x, touch.y)
 
-        if touch.is_touch:
+        elif touch.is_touch:
             tile_pos = self.tile_map.get_tile_at_position((touch.x, touch.y))
             # print(self.tile_map.get_tile_properties_at_pos(tile_pos[0], tile_pos[1], "зоны"))
             # print(self.tile_map.get_tile_name_at_pos(tile_pos[0], tile_pos[1], "зоны"))
-
         return super().on_touch_down(touch)
 
 class MainScreen(BoxLayout):
@@ -44,8 +43,8 @@ class MainScreen(BoxLayout):
 
 class TiledApp(App):
     def build(self):
-        return MapView()
-        # return MainScreen()
+        # return MapView()
+        return MainScreen()
 
 
 if __name__ == '__main__':
