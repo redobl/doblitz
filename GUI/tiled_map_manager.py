@@ -274,15 +274,20 @@ class TileMap(Widget):
 
         return None
 
-    def get_tile_name_at_pos(self, x: int, y: int, layer: int = 0):
-        return self.tiled_map.get_tile_gid(x, y, layer)
+    def get_tile_name_at_pos(self, x: int, y: int, layer_name: str):
+        layer = self.tiled_map.get_layer_by_name(layer_name)
+        layer_index = self.tiled_map.layers.index(layer)
 
-    def get_tile_properties_at_pos(self, x: int, y: int, layer: int = 0):
+        return self.tiled_map.get_tile_gid(x, y, layer_index)
+
+    def get_tile_properties_at_pos(self, x: int, y: int, layer_name: str):
+        layer = self.tiled_map.get_layer_by_name(layer_name)
+        layer_index = self.tiled_map.layers.index(layer)
         try:
-            return self.tiled_map.get_tile_properties(x, y, layer)
+            return self.tiled_map.get_tile_properties(x, y, layer_index)
         except AttributeError:
             print("error getting tile properties")
             return None
         except Exception:
-            print("layer is invalid")
+            print("layer is invalid?")
             return None

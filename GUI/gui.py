@@ -32,8 +32,8 @@ class MapView(ScatterLayout):
 
         if touch.is_touch:
             tile_pos = self.tile_map.get_tile_at_position((touch.x, touch.y))
-            print(self.tile_map.get_tile_properties_at_pos(tile_pos[0], tile_pos[1]))
-            print(self.tile_map.get_tile_name_at_pos(tile_pos[0], tile_pos[1]))
+            # print(self.tile_map.get_tile_properties_at_pos(tile_pos[0], tile_pos[1], "зоны"))
+            # print(self.tile_map.get_tile_name_at_pos(tile_pos[0], tile_pos[1], "зоны"))
 
         return super().on_touch_down(touch)
 
