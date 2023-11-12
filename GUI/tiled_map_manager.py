@@ -133,6 +133,7 @@ class TileMap(Widget):
 
         with self.canvas:
             layer_idx = 0
+
             for layer in self.tiled_map.layers:
                 if not layer.visible:
                     continue  # skip the layer if it's not visible
@@ -152,18 +153,18 @@ class TileMap(Widget):
 
                     # calculate the drawing parameters of the tile
                     draw_pos = self._get_tile_pos(tile_x, tile_y)
-                    draw_size = self.scaled_tile_size
 
                     # create a rectangle instruction for the gpu
-                    Rectangle(texture=texture, pos=draw_pos, size=draw_size)
-
-                    # create a grid
-                    # TODO: optimize this
-                    Color(0, 0, 0)
-                    Line(dash_length=4, dash_offset=4, rectangle=(draw_pos[0], draw_pos[1], draw_size[0], draw_size[1]))
-                    Color(1, 1, 1) # reset color
-
+                    Rectangle(texture=texture, pos=draw_pos, size=self.scaled_tile_size)
                 layer_idx += 1
+
+            Color(0, 0, 0)
+            for x_dash_line in range(0, self.scaled_map_width, self.scaled_tile_size[0]):
+                Line(dash_length=3, dash_offset=3, points=[x_dash_line, 0, x_dash_line, self.scaled_map_height])
+
+            for y_dash_line in range(0, self.scaled_map_height, self.scaled_tile_size[1]):
+                Line(dash_length=3, dash_offset=3, points=[0, y_dash_line, self.scaled_map_width, y_dash_line])
+            Color(1, 1, 1)
 
     def draw_object_groups(self, object_groups: list[str]):
         with self.canvas:
@@ -175,7 +176,6 @@ class TileMap(Widget):
 
                 if objectgroup.name in object_groups:
                     for object in objectgroup:
-                        Color(1, 0, 0)
                         Line(
                             width=2,
                             dash_length=4,
@@ -185,9 +185,9 @@ class TileMap(Widget):
                                 self.scaled_map_height - object.y - object.height, 
                                 object.width, 
                                 object.height
-                            )
+                            ),
+                            bg_color=Color(1, 0, 0)
                         )
-                        Color(1, 1, 1)
 
     def draw_object_line(
             self, 
@@ -274,15 +274,20 @@ class TileMap(Widget):
 
         return None
 
-    def get_tile_name_at_pos(self, x: int, y: int, layer: int = 0):
-        return self.tiled_map.get_tile_gid(x, y, layer)
+    def get_tile_name_at_pos(self, x: int, y: int, layer_name: str):
+        layer = self.tiled_map.get_layer_by_name(layer_name)
+        layer_index = self.tiled_map.layers.index(layer)
 
-    def get_tile_properties_at_pos(self, x: int, y: int, layer: int = 0):
+        return self.tiled_map.get_tile_gid(x, y, layer_index)
+
+    def get_tile_properties_at_pos(self, x: int, y: int, layer_name: str):
+        layer = self.tiled_map.get_layer_by_name(layer_name)
+        layer_index = self.tiled_map.layers.index(layer)
         try:
-            return self.tiled_map.get_tile_properties(x, y, layer)
+            return self.tiled_map.get_tile_properties(x, y, layer_index)
         except AttributeError:
             print("error getting tile properties")
             return None
         except Exception:
-            print("layer is invalid")
+            print("layer is invalid?")
             return None
