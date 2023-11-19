@@ -4,6 +4,7 @@ from typing import Union
 import pytmx
 from kivy.core.image import Image as CoreImage
 from kivy.graphics import Color, Line, Rectangle
+from kivy.graphics.instructions import InstructionGroup
 from kivy.logger import Logger
 from kivy.properties import ListProperty
 from kivy.uix.widget import Widget
@@ -106,11 +107,13 @@ class TileMap(Widget):
         super(TileMap, self).__init__(**kwargs)
 
         self._scale = 1.0
+        self._layers_display_instructions = InstructionGroup()
         self.tile_map_size = (self.tiled_map.width, self.tiled_map.height)
         self.tile_size = (self.tiled_map.tilewidth, self.tiled_map.tileheight)
         self.scaled_tile_size = self.tile_size
         self.scaled_map_width = self.scaled_tile_size[0] * self.tile_map_size[0]
         self.scaled_map_height = self.scaled_tile_size[1] * self.tile_map_size[1]
+        self.layers = []
 
     @property
     def scale(self) -> float:
@@ -167,27 +170,28 @@ class TileMap(Widget):
             Color(1, 1, 1)
 
     def draw_object_groups(self, object_groups: list[str]):
-        with self.canvas:
-            for objectgroup in self.tiled_map.layers:
-                if not isinstance(objectgroup, pytmx.TiledObjectGroup):
-                    continue
-                if not objectgroup.visible:
-                    continue
-
-                if objectgroup.name in object_groups:
-                    for object in objectgroup:
-                        Line(
-                            width=2,
-                            dash_length=4,
-                            dash_offset=4,
-                            rectangle=(
-                                object.x, 
-                                self.scaled_map_height - object.y - object.height, 
-                                object.width, 
-                                object.height
-                            ),
-                            bg_color=Color(1, 0, 0)
-                        )
+        self._layers_display_instructions.clear()
+        self._layers_display_instructions.add(Color(1, 0, 0))
+        for objectgroup in self.tiled_map.layers:
+            if not isinstance(objectgroup, pytmx.TiledObjectGroup):
+                continue
+            if not objectgroup.visible:
+                continue
+            
+            if objectgroup.name in object_groups:
+                for object in objectgroup:
+                    self._layers_display_instructions.add(Line(
+                        width=2,
+                        dash_length=4,
+                        dash_offset=4,
+                        rectangle=(
+                            object.x, 
+                            self.scaled_map_height - object.y - object.height, 
+                            object.width, 
+                            object.height
+                        ),
+                    ))
+        self.canvas.add(self._layers_display_instructions)
 
     def draw_object_rectangle(
             self, 
@@ -227,7 +231,6 @@ class TileMap(Widget):
         Logger.debug('TileMap: Re-drawing')
 
         self.draw_map()
-        self.draw_object_groups(["зоны"])
 
     def _get_tile_pos(self, x, y):
         """Get the tile position relative to the widget."""
@@ -291,3 +294,6 @@ class TileMap(Widget):
         except Exception:
             print("layer is invalid?")
             return None
+
+    def get_all_layers(self) -> list[str]:
+        return [objectgroup.name for objectgroup in self.tiled_map.layers if isinstance(objectgroup, pytmx.TiledObjectGroup)]
