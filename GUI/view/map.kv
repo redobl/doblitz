@@ -1,7 +1,7 @@
 #:kivy 2.2.1
 #:import Factory kivy.factory.Factory
-#:import AddObjectPopup utils.add_object_popup.AddObjectPopup
-#:import MultiSelectDropdown utils.multi_select_dropdown.MultiSelectDropdown
+#:import AddObjectPopup GUI.utils.add_object_popup.AddObjectPopup
+#:import MultiSelectDropdown GUI.utils.multi_select_dropdown.MultiSelectDropdown
 
 <AddObjectPopup>:
     id: add_object_popup
@@ -31,6 +31,13 @@
 
         BoxLayout:
             orientation: "vertical"
+
+            Button:
+                text: "Удалить все map_object"
+                on_release: root.ids.map_view.remove_map_objects()
+            Button:
+                text: "Взорвать приложение"
+                on_release: root.ids.map_view.blow_app()
             Button:
                 text: "wanna see my ids?"
                 on_release: print(root.ids)
@@ -48,6 +55,9 @@
             BoxLayout:
                 orientation: "vertical"
                 ScatterLayout:
+                    do_rotation: False
+                    do_translation: False
+                    do_scale: False
                     StencilView:
                         MapView:
                             id: map_view

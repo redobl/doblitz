@@ -1,6 +1,7 @@
 from kivy.properties import BooleanProperty, NumericProperty
 from kivy.uix.popup import Popup
-from tiled_map_manager import TileMap
+
+from GUI.tiled_map_manager import TileMap
 
 
 class AddObjectPopup(Popup):

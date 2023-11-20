@@ -1,10 +1,13 @@
-import tiled_map_manager as map_manager
 from kivy.app import App
 from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatterlayout import ScatterLayout
+
+import GUI.tiled_map_manager as map_manager
+from common.game import MapObject
+from common.models import init_db
 
 Builder.load_file("GUI/view/map.kv")
 
@@ -25,6 +28,7 @@ class MapView(ScatterLayout):
 
         self.layers = self.tile_map.get_all_layers()
         self.add_widget(self.tile_map)
+        init_db("db.sqlite")
 
     def on_touch_down(self, touch: MotionEvent):
         if touch.is_mouse_scrolling:
@@ -42,6 +46,19 @@ class MapView(ScatterLayout):
         self.tile_map.draw_object_groups(self.selected_layers)
         return super().on_touch_down(touch)
 
+    def blow_app(self):
+        map_objects = MapObject.select()
+        for map_object in map_objects:
+            self.tile_map.draw_map_object_rectangle(
+                map_object.model.coord_x,
+                map_object.model.coord_y,
+                map_object.model.sizeX,
+                map_object.model.sizeY,
+            )
+        self.tile_map.add_map_objects_on_canvas()
+
+    def remove_map_objects(self):
+        self.tile_map.clear_map_objects()
 
 class MainScreen(BoxLayout):
     def __init__(self, **kwargs):
