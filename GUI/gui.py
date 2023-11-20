@@ -11,6 +11,7 @@ from common.models import init_db
 
 Builder.load_file("GUI/view/map.kv")
 
+
 class MapView(ScatterLayout):
     layers: list[str] = ListProperty()
     selected_layers: list[str] = ListProperty()
@@ -21,10 +22,7 @@ class MapView(ScatterLayout):
         self.tile_map = map_manager.TileMap("GUI/instances.tmx")
         self.do_rotation = False
         self.size_hint = (None, None)
-        self.size = (
-            self.tile_map.scaled_map_width,
-            self.tile_map.scaled_map_height
-        )
+        self.size = (self.tile_map.scaled_map_width, self.tile_map.scaled_map_height)
 
         self.layers = self.tile_map.get_all_layers()
         self.add_widget(self.tile_map)
@@ -32,10 +30,18 @@ class MapView(ScatterLayout):
 
     def on_touch_down(self, touch: MotionEvent):
         if touch.is_mouse_scrolling:
+            dist = (touch.x - self.center_x, touch.y - self.center_y)
             if touch.button == "scrolldown":
-                self.scale = self.scale * 1.25
+                coeff = 1.25
             elif touch.button == "scrollup":
-                self.scale = self.scale * 0.8
+                coeff = 0.8
+            else:
+                return super().on_touch_down(touch)
+            self.scale *= coeff
+            self.center = (
+                self.center_x - dist[0] * (coeff - 1),
+                self.center_y - dist[1] * (coeff - 1),
+            )
 
         elif touch.is_double_tap:
             self.pos = (touch.x, touch.y)
@@ -60,6 +66,7 @@ class MapView(ScatterLayout):
     def remove_map_objects(self):
         self.tile_map.clear_map_objects()
 
+
 class MainScreen(BoxLayout):
     def __init__(self, **kwargs):
         super(MainScreen, self).__init__(**kwargs)
@@ -70,6 +77,6 @@ class TiledApp(App):
         return MainScreen()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = TiledApp()
     app.run()
