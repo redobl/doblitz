@@ -16,7 +16,7 @@ class Game(BaseArbitraryModel):
 class Player(BaseArbitraryModel):
     id: int
 
-    def select_characters(self, *criteria) -> list["Character"]:
+    def select_characters(self, *criteria) -> map:
         return Character.select(CharacterModel.player_id == self.id, *criteria)
 
     def get_character(self, *criteria) -> "Character":
@@ -41,7 +41,7 @@ class GameObject(BaseArbitraryModel):
         return cls(model=model)
 
     @classmethod
-    def select(cls, *criteria) -> map["GameObject"]:
+    def select(cls, *criteria) -> map:
         model_type = get_type_hints(cls)["model"]
         if len(criteria) == 0:
             return map(cls._from_model, list(model_type.select()))
