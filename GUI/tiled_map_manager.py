@@ -108,6 +108,7 @@ class TileMap(Widget):
 
         self._scale = 1.0
         self._layers_display_instructions = InstructionGroup()
+        self._map_object_display_instructions = InstructionGroup()
         self.tile_map_size = (self.tiled_map.width, self.tiled_map.height)
         self.tile_size = (self.tiled_map.tilewidth, self.tiled_map.tileheight)
         self.scaled_tile_size = self.tile_size
@@ -193,7 +194,7 @@ class TileMap(Widget):
                     ))
         self.canvas.add(self._layers_display_instructions)
 
-    def draw_object_rectangle(
+    def draw_map_object_rectangle(
             self, 
             object_x: int,
             object_y: int,
@@ -217,15 +218,27 @@ class TileMap(Widget):
         if not is_absolute_coord:
             object_x = object_x * 32
             object_y = object_y * 32
-        
-        with self.canvas:
-            Color(color[0], color[1], color[2])
+
+        self._map_object_display_instructions.add(Color(color[0], color[1], color[2]))
+        self._map_object_display_instructions.add(    
             Line(
                 width=line_width,
                 rectangle=(object_x, self.scaled_map_height - object_y - object_height, object_width, object_height)
             )
-            Color(1, 1, 1)
+        )
+        self._map_object_display_instructions.add(Color(color[0], color[1], color[2], 0.33))
+        self._map_object_display_instructions.add(
+            Rectangle(
+                pos = (object_x, self.scaled_map_height - object_y - object_height),
+                size = (object_width, object_height)
+            )
+        )
 
+    def add_map_objects_on_canvas(self):
+        self.canvas.add(self._map_object_display_instructions)
+
+    def clear_map_objects(self):
+        self._map_object_display_instructions.clear()
 
     def on_size(self, *args):
         Logger.debug('TileMap: Re-drawing')
