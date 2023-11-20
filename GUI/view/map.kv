@@ -37,7 +37,7 @@
             Button:
                 text: "+"
                 size_hint: 1, 1
-                on_release: Factory.AddObjectPopup().open()
+                on_release: Factory.AddObjectPopup().open(root.ids.map_view.tile_map)
             MultiSelectDropdown:
                 id: map_layers_dropdown
                 values: root.ids.map_view.layers
