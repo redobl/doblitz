@@ -69,6 +69,14 @@ class GameObject(BaseArbitraryModel):
         model_type = get_type_hints(cls)["model"]
         return cls._from_model(model_type.create(**kwargs))
 
+    @classmethod
+    def clear(cls, *criteria):
+        model_type = get_type_hints(cls)["model"]
+        if len(criteria) == 0:
+            return model_type.delete().execute()
+        else:
+            return model_type.delete().where(*criteria).execute()
+
     def delete(self):
         return self.model.delete_instance()
 
