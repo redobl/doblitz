@@ -41,7 +41,7 @@ class GameObject(BaseArbitraryModel):
         return cls(model=model)
 
     @classmethod
-    def select(cls, *criteria) -> list["GameObject"]:
+    def select(cls, *criteria) -> map["GameObject"]:
         model_type = get_type_hints(cls)["model"]
         if len(criteria) == 0:
             return map(cls._from_model, list(model_type.select()))
