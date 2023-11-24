@@ -172,6 +172,7 @@ class TileMap(Widget):
 
     def draw_object_groups(self, object_groups: list[str]):
         self._layers_display_instructions.clear()
+        self.canvas.remove(self._layers_display_instructions)
         self._layers_display_instructions.add(Color(1, 0, 0))
         for objectgroup in self.tiled_map.layers:
             if not isinstance(objectgroup, pytmx.TiledObjectGroup):
@@ -239,6 +240,7 @@ class TileMap(Widget):
 
     def clear_map_objects(self):
         self._map_object_display_instructions.clear()
+        self.canvas.remove(self._map_object_display_instructions)
 
     def on_size(self, *args):
         Logger.debug('TileMap: Re-drawing')
