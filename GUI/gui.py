@@ -43,12 +43,6 @@ class MapView(ScatterLayout):
                 self.center_y - dist[1] * (coeff - 1),
             )
 
-        elif touch.is_double_tap:
-            self.pos = (touch.x, touch.y)
-
-        elif touch.is_touch:
-            # tile_pos = self.tile_map.get_tile_at_position((touch.x, touch.y))
-            pass
         self.tile_map.draw_object_groups(self.selected_layers)
         return super().on_touch_down(touch)
 

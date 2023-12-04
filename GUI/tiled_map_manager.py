@@ -5,6 +5,7 @@ import pytmx
 from kivy.core.image import Image as CoreImage
 from kivy.graphics import Color, Line, Rectangle
 from kivy.graphics.instructions import InstructionGroup
+from kivy.input.motionevent import MotionEvent
 from kivy.logger import Logger
 from kivy.properties import ListProperty
 from kivy.uix.widget import Widget
@@ -109,6 +110,7 @@ class TileMap(Widget):
         self._scale = 1.0
         self._layers_display_instructions = InstructionGroup()
         self._map_object_display_instructions = InstructionGroup()
+        self._map_object_widgets: list[MapObjectWidget] = []
         self.tile_map_size = (self.tiled_map.width, self.tiled_map.height)
         self.tile_size = (self.tiled_map.tilewidth, self.tiled_map.tileheight)
         self.scaled_tile_size = self.tile_size
@@ -235,6 +237,10 @@ class TileMap(Widget):
             )
         )
 
+        map_object_widget = MapObjectWidget(1, object_x, self.scaled_map_height - object_y - object_height, object_width, object_height, 1)
+        self._map_object_widgets.append(map_object_widget)
+        self.add_widget(map_object_widget)
+
     def add_map_objects_on_canvas(self):
         self.canvas.add(self._map_object_display_instructions)
 
@@ -312,3 +318,29 @@ class TileMap(Widget):
 
     def get_all_layers(self) -> list[str]:
         return [objectgroup.name for objectgroup in self.tiled_map.layers if isinstance(objectgroup, pytmx.TiledObjectGroup)]
+
+
+class MapObjectWidget(Widget):
+    def __init__(self, 
+                 object_id: int, 
+                 x: int, y: int,
+                 width: int, height: int,
+                 layer: int, 
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.object_id = object_id
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.layer = layer
+
+        self.pos = (self.x, self.y)
+
+    def on_touch_down(self, touch: MotionEvent):
+        if touch.is_double_tap:
+            if self.x <= touch.x <= self.x + self.width and \
+            self.y <= touch.y <= self.y + self.height:
+                print(f"touched {self.pos}")
+        return super().on_touch_down(touch)
+
