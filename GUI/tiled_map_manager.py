@@ -1,14 +1,14 @@
 import os
-from typing import Union
 
 import pytmx
 from kivy.core.image import Image as CoreImage
 from kivy.graphics import Color, Line, Rectangle
 from kivy.graphics.instructions import InstructionGroup
-from kivy.input.motionevent import MotionEvent
 from kivy.logger import Logger
 from kivy.properties import ListProperty
 from kivy.uix.widget import Widget
+
+from GUI.widgets.map_object_widget import MapObjectWidget
 
 
 class KivyTiledMap(pytmx.TiledMap):
@@ -173,8 +173,7 @@ class TileMap(Widget):
             Color(1, 1, 1)
 
     def draw_object_groups(self, object_groups: list[str]):
-        self._layers_display_instructions.clear()
-        self.canvas.remove(self._layers_display_instructions)
+        self.__clear_group_instructions(self._layers_display_instructions)
         self._layers_display_instructions.add(Color(1, 0, 0))
         for objectgroup in self.tiled_map.layers:
             if not isinstance(objectgroup, pytmx.TiledObjectGroup):
@@ -245,8 +244,13 @@ class TileMap(Widget):
         self.canvas.add(self._map_object_display_instructions)
 
     def clear_map_objects(self):
-        self._map_object_display_instructions.clear()
-        self.canvas.remove(self._map_object_display_instructions)
+        self.__clear_group_instructions(self._map_object_display_instructions)
+        self._map_object_widgets.clear()
+        self.clear_widgets()
+
+    def __clear_group_instructions(self, group: InstructionGroup):
+        group.clear()
+        self.canvas.remove(group)
 
     def on_size(self, *args):
         Logger.debug('TileMap: Re-drawing')
@@ -318,29 +322,3 @@ class TileMap(Widget):
 
     def get_all_layers(self) -> list[str]:
         return [objectgroup.name for objectgroup in self.tiled_map.layers if isinstance(objectgroup, pytmx.TiledObjectGroup)]
-
-
-class MapObjectWidget(Widget):
-    def __init__(self, 
-                 object_id: int, 
-                 x: int, y: int,
-                 width: int, height: int,
-                 layer: int, 
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.object_id = object_id
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-        self.layer = layer
-
-        self.pos = (self.x, self.y)
-
-    def on_touch_down(self, touch: MotionEvent):
-        if touch.is_double_tap:
-            if self.x <= touch.x <= self.x + self.width and \
-            self.y <= touch.y <= self.y + self.height:
-                print(f"touched {self.pos}")
-        return super().on_touch_down(touch)
-

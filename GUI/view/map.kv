@@ -48,6 +48,7 @@
             MultiSelectDropdown:
                 id: map_layers_dropdown
                 values: root.ids.map_view.layers
+                dropdown_dismiss: root.ids.map_view.tile_map.draw_object_groups(root.ids.map_view.selected_layers)
 
         Splitter:
             sizable_from: "left"

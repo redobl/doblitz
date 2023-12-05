@@ -43,7 +43,6 @@ class MapView(ScatterLayout):
                 self.center_y - dist[1] * (coeff - 1),
             )
 
-        self.tile_map.draw_object_groups(self.selected_layers)
         return super().on_touch_down(touch)
 
     def blow_app(self):
