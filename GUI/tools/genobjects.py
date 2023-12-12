@@ -17,7 +17,7 @@ def main():
     db_path = main_dir / "db.sqlite"
     init_db(db_path)
     MapObject.clear()
-    for i in range(10000):
+    for i in range(10):
         coords = (random.randint(0, MAP_SIZE[0]), random.randint(0, MAP_SIZE[1]))
         MapObject.create(name=f"Object {i}", coord_x=coords[0], coord_y=coords[1])
 
