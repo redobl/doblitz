@@ -1,6 +1,7 @@
 import os
 from typing import Optional, Union
 
+
 import pytmx
 from kivy.core.image import Image as CoreImage
 from kivy.graphics import Color, Line, Rectangle
@@ -252,8 +253,9 @@ class TileMap(Widget):
         
         self._map_object_widgets.append(map_object_widget)
         self.add_widget(map_object_widget)
-        
+
         return True
+
 
     def add_map_objects_on_canvas(self):
         self.canvas.add(self._map_object_display_instructions)
