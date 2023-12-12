@@ -1,4 +1,6 @@
 import os
+from typing import Optional, Union
+
 
 import pytmx
 from kivy.core.image import Image as CoreImage
@@ -201,14 +203,15 @@ class TileMap(Widget):
 
     def draw_map_object_rectangle(
             self, 
-            object_x: int,
-            object_y: int,
+            object_x: Optional[int],
+            object_y: Optional[int],
             object_width: int,
             object_height: int,
             line_width: float = 1.0,
             color: tuple[float, float, float] = (0.0, 0.0, 0.0),
             is_absolute_coord: bool = True,
-            label_proxy = None):
+            label_proxy = None) -> bool:
+
         """Draws the object at the given coordinates as the hollow rectangle.
         The starting point is in the upper left corner, as in Tiled.
 
@@ -220,7 +223,12 @@ class TileMap(Widget):
             line_width (int): width of the line
             color (tuple[float, float, float]): RGB from 0 to 1. Default is (0.0, 0.0, 0.0)
             is_absolute_coord (bool, optional): Defaults to True
+
+        Returns True if the object was successfully drawn, False otherwise
         """
+        if object_x is None or object_y is None:
+            return False
+        
         if not is_absolute_coord:
             object_x = object_x * 32
             object_y = object_y * 32
@@ -240,12 +248,16 @@ class TileMap(Widget):
             )
         )
 
+
         map_object_widget = MapObjectWidget(
             1, object_x, self.scaled_map_height - object_y - object_height, 
             object_width, object_height, 1, label_proxy)
         
         self._map_object_widgets.append(map_object_widget)
         self.add_widget(map_object_widget)
+
+        return True
+
 
     def add_map_objects_on_canvas(self):
         self.canvas.add(self._map_object_display_instructions)
