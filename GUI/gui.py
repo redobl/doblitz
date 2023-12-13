@@ -3,7 +3,6 @@ import itertools
 from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scatterlayout import ScatterLayout
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
@@ -47,7 +46,9 @@ class MapView(ScatterLayout):
                 self.center_x - dist[0] * (coeff - 1),
                 self.center_y - dist[1] * (coeff - 1),
             )
-        return super().on_touch_down(touch)
+
+        if touch.button == "middle":
+            return super().on_touch_down(touch)
 
     def blow_app(self):
         map_objects = MapObject.select()
@@ -76,8 +77,3 @@ class TiledApp(MDApp):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Orange"
         return MainScreen()
-
-
-if __name__ == "__main__":
-    app = TiledApp()
-    app.run()
