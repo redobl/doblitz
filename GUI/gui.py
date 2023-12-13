@@ -1,3 +1,5 @@
+import itertools
+
 from kivy.input.motionevent import MotionEvent
 from kivy.lang import Builder
 from kivy.properties import ListProperty, ObjectProperty
@@ -48,7 +50,7 @@ class MapView(ScatterLayout):
 
     def blow_app(self):
         map_objects = MapObject.select()
-        for map_object in list(map_objects)[:1000]:
+        for map_object in itertools.islice(map_objects, 1000):
             self.tile_map.draw_map_object_rectangle(
                 map_object.model.coord_x,
                 map_object.model.coord_y,
