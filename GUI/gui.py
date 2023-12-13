@@ -11,6 +11,7 @@ from common.game import MapObject
 from common.models import init_db
 
 Builder.load_file("GUI/view/map.kv")
+Builder.load_file("GUI/view/add_object_dialog_content.kv")
 
 
 class MapView(ScatterLayout):
