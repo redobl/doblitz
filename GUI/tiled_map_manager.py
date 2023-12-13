@@ -1,6 +1,7 @@
 import os
 from typing import Optional, Union
 
+
 import pytmx
 from kivy.core.image import Image as CoreImage
 from kivy.graphics import Color, Line, Rectangle
@@ -8,6 +9,8 @@ from kivy.graphics.instructions import InstructionGroup
 from kivy.logger import Logger
 from kivy.properties import ListProperty
 from kivy.uix.widget import Widget
+
+from GUI.widgets.map_object_widget import MapObjectWidget
 
 
 class KivyTiledMap(pytmx.TiledMap):
@@ -108,13 +111,17 @@ class TileMap(Widget):
 
         self._scale = 1.0
         self._layers_display_instructions = InstructionGroup()
+        self.layers = []
+        
         self._map_object_display_instructions = InstructionGroup()
+        self._map_object_widgets: list[MapObjectWidget] = []
+       
         self.tile_map_size = (self.tiled_map.width, self.tiled_map.height)
         self.tile_size = (self.tiled_map.tilewidth, self.tiled_map.tileheight)
+        
         self.scaled_tile_size = self.tile_size
         self.scaled_map_width = self.scaled_tile_size[0] * self.tile_map_size[0]
         self.scaled_map_height = self.scaled_tile_size[1] * self.tile_map_size[1]
-        self.layers = []
 
     @property
     def scale(self) -> float:
@@ -171,8 +178,7 @@ class TileMap(Widget):
             Color(1, 1, 1)
 
     def draw_object_groups(self, object_groups: list[str]):
-        self._layers_display_instructions.clear()
-        self.canvas.remove(self._layers_display_instructions)
+        self.__clear_group_instructions(self._layers_display_instructions)
         self._layers_display_instructions.add(Color(1, 0, 0))
         for objectgroup in self.tiled_map.layers:
             if not isinstance(objectgroup, pytmx.TiledObjectGroup):
@@ -203,7 +209,8 @@ class TileMap(Widget):
             object_height: int,
             line_width: float = 1.0,
             color: tuple[float, float, float] = (0.0, 0.0, 0.0),
-            is_absolute_coord: bool = True) -> bool:
+            is_absolute_coord: bool = True,
+            label_proxy = None) -> bool:
         """Draws the object at the given coordinates as the hollow rectangle.
         The starting point is in the upper left corner, as in Tiled.
 
@@ -240,14 +247,27 @@ class TileMap(Widget):
             )
         )
 
+        map_object_widget = MapObjectWidget(
+            1, object_x, self.scaled_map_height - object_y - object_height, 
+            object_width, object_height, 1, label_proxy)
+        
+        self._map_object_widgets.append(map_object_widget)
+        self.add_widget(map_object_widget)
+
         return True
+
 
     def add_map_objects_on_canvas(self):
         self.canvas.add(self._map_object_display_instructions)
 
     def clear_map_objects(self):
-        self._map_object_display_instructions.clear()
-        self.canvas.remove(self._map_object_display_instructions)
+        self.__clear_group_instructions(self._map_object_display_instructions)
+        self._map_object_widgets.clear()
+        self.clear_widgets()
+
+    def __clear_group_instructions(self, group: InstructionGroup):
+        group.clear()
+        self.canvas.remove(group)
 
     def on_size(self, *args):
         Logger.debug('TileMap: Re-drawing')
