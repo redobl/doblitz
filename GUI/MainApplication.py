@@ -4,7 +4,8 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 
-from GUI.MapRenderer import MapRenderer
+from common.models import init_db
+from GUI.widgets.MapRenderer import MapRenderer
 
 
 class MainApplication(QMainWindow):
