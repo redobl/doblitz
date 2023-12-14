@@ -34,7 +34,7 @@ class MainApplication(QMainWindow):
         splitterWidget.addWidget(tileListView)
 
         renderer = MapRenderer(os.path.join(currentLocation, "instances.tmx"))
-
+        renderer.drawMapObject(27, 27, 4, 4)
         splitterWidget.addWidget(renderer)
 
         self.show()

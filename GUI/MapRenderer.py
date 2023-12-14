@@ -1,10 +1,13 @@
 import os
 import sys
+from typing import Optional
 
 import pytmx
 from PySide6.QtCore import *
 from PySide6.QtGui import *
+from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import *
+from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
 
 from GUI.utils.QtTiledMap import QtTiledMap
 
@@ -22,6 +25,9 @@ class MapRenderer(QGraphicsView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setRenderHint(QPainter.SmoothPixmapTransform)
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
+
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 
         self.scene = MapScene()
         self.setScene(self.scene)
@@ -49,6 +55,27 @@ class MapRenderer(QGraphicsView):
                     item.setPos(QPointF(tileX * self.TILE_SIZE, tileY * self.TILE_SIZE))
                     self.scene.addItem(item)
 
+    def wheelEvent(self, event: QWheelEvent):
+        zoomInFactor = 1.25
+        zoomOutFactor = 1 / zoomInFactor
+
+        # Save the scene pos
+        oldPos = self.mapToScene(event.position().toPoint())
+
+        # Zoom
+        if event.angleDelta().y() > 0:
+            zoomFactor = zoomInFactor
+        else:
+            zoomFactor = zoomOutFactor
+        self.scale(zoomFactor, zoomFactor)
+
+        # Get the new position
+        newPos = self.mapToScene(event.position().toPoint())
+
+        # Move scene to old position
+        delta = newPos - oldPos
+        self.translate(delta.x(), delta.y())
+
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
@@ -63,6 +90,36 @@ class MapRenderer(QGraphicsView):
                 self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
             self.__oldMousePos = newPos
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.restoreOverrideCursor()
+
+    def drawMapObject(self, x: int, y: int, width: int, height: int):
+        self.scene.addItem(MapObject(x, y, width, height, 0.33))
+
+
+class MapObject(QGraphicsRectItem):
+    def __init__(self,
+                 x: int,
+                 y: int,
+                 width: int,
+                 height: int,
+                 opacity: float = 1.0,
+                 isSelectable: bool = True,
+                 *args, **kwargs):
+        super().__init__(x, y, width, height, *args, **kwargs)
+        self.setPos(x, y)
+        self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
+
+        self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable)
+        self.setAcceptHoverEvents(True)
+
+    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
+        painter.setBrush(self._brush)
+        painter.drawRect(self.rect())
+
+    def hoverEnterEvent(self, event):
+        QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+
+    def hoverLeaveEvent(self, event):
+        QApplication.restoreOverrideCursor()
