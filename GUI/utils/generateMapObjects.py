@@ -20,7 +20,7 @@ def main():
     for i in range(10000):
         coords = (random.randint(0, MAP_SIZE[0]), random.randint(0, MAP_SIZE[1]))
         MapObject.create(name=f"Object {i}", coord_x=coords[0], coord_y=coords[1])
-
+        print(f"generated {i}")
 
 if __name__ == "__main__":
     main()
