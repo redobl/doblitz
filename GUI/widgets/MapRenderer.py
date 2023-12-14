@@ -29,6 +29,7 @@ class MapRenderer(QGraphicsView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setCacheMode(QGraphicsView.CacheNone)
+        self.setMouseTracking(True)
 
         self.scene = MapScene()
         self.setScene(self.scene)
@@ -45,7 +46,6 @@ class MapRenderer(QGraphicsView):
 
         self.viewport().installEventFilter(self)
 
-
         self.__oldMousePos = None
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
@@ -58,7 +58,6 @@ class MapRenderer(QGraphicsView):
             self.cursorCoordinatesLabel.setText(f"X: {scenePos.x()}, Y: {scenePos.y()} (TileX: {tileX}, TileY: {tileY})")
 
         return super().eventFilter(obj, event)
-
 
     def populateScene(self):
         for layer in self.tiledMap.layers:
@@ -121,7 +120,7 @@ class MapRenderer(QGraphicsView):
             QApplication.restoreOverrideCursor()
 
     def drawMapObject(self, x: int, y: int, width: int, height: int):
-        self.scene.addItem(MapObject(x, y, width, height, 0.33))
+        self.scene.addItem(MapObject(x // 2, y // 2, width, height, 0.33))
 
 
 class MapObject(QGraphicsRectItem):
