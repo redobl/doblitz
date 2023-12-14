@@ -22,12 +22,13 @@ class MapRenderer(QGraphicsView):
     def __init__(self, tmxFilePath: str, *args, **kwargs) -> None:
         super(MapRenderer, self).__init__(*args, **kwargs)
 
-        self.setRenderHint(QPainter.Antialiasing)
-        self.setRenderHint(QPainter.SmoothPixmapTransform)
+        # self.setRenderHint(QPainter.Antialiasing)
+        # self.setRenderHint(QPainter.SmoothPixmapTransform)
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
-
+        self.setTransformationAnchor(QGraphicsView.NoAnchor)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self.setCacheMode(QGraphicsView.CacheNone)
 
         self.scene = MapScene()
         self.setScene(self.scene)
@@ -35,7 +36,29 @@ class MapRenderer(QGraphicsView):
         self.tiledMap = QtTiledMap(tmxFilePath)
         self.populateScene()
 
+        self.cursorCoordinatesLabel = QLabel(self)
+        self.cursorCoordinatesLabel.setStyleSheet("color: white; background-color: rgba(0, 0, 0, 50%);")
+        self.cursorCoordinatesLabel.setFont(QFont("SegoeUI", 10))
+        self.cursorCoordinatesLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.cursorCoordinatesLabel.setMinimumSize(QSize(250, 20))
+        self.cursorCoordinatesLabel.move(5, 5)
+
+        self.viewport().installEventFilter(self)
+
+
         self.__oldMousePos = None
+
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        if obj == self.viewport() and event.type() == QEvent.Type.MouseMove:
+            # Update the QLabel text with the cursor's coordinates
+            scenePos = self.mapToScene(event.pos()).toPoint()
+            tileX = int(scenePos.x() / self.TILE_SIZE)
+            tileY = int(scenePos.y() / self.TILE_SIZE)
+
+            self.cursorCoordinatesLabel.setText(f"X: {scenePos.x()}, Y: {scenePos.y()} (TileX: {tileX}, TileY: {tileY})")
+
+        return super().eventFilter(obj, event)
+
 
     def populateScene(self):
         for layer in self.tiledMap.layers:
@@ -56,25 +79,28 @@ class MapRenderer(QGraphicsView):
                     self.scene.addItem(item)
 
     def wheelEvent(self, event: QWheelEvent):
-        zoomInFactor = 1.25
-        zoomOutFactor = 1 / zoomInFactor
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+            zoomInFactor = 1.25
+            zoomOutFactor = 1 / zoomInFactor
 
-        # Save the scene pos
-        oldPos = self.mapToScene(event.position().toPoint())
+            # Save the scene pos
+            oldPos = self.mapToScene(event.position().toPoint())
 
-        # Zoom
-        if event.angleDelta().y() > 0:
-            zoomFactor = zoomInFactor
-        else:
-            zoomFactor = zoomOutFactor
-        self.scale(zoomFactor, zoomFactor)
+            # Zoom
+            if event.angleDelta().y() > 0:
+                zoomFactor = zoomInFactor
+            else:
+                zoomFactor = zoomOutFactor
+            self.scale(zoomFactor, zoomFactor)
 
-        # Get the new position
-        newPos = self.mapToScene(event.position().toPoint())
+            # Get the new position
+            newPos = self.mapToScene(event.position().toPoint())
 
-        # Move scene to old position
-        delta = newPos - oldPos
-        self.translate(delta.x(), delta.y())
+            # Move scene to old position
+            delta = newPos - oldPos
+            self.translate(delta.x(), delta.y())
+            return
+        return super().wheelEvent(event)
 
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
