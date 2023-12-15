@@ -1,4 +1,3 @@
-import itertools
 import os
 
 from PySide6.QtCore import *
@@ -8,6 +7,7 @@ from PySide6.QtWidgets import *
 from common.game import MapObject
 from common.models import init_db
 from GUI.widgets.MapRenderer import MapRenderer
+from GUI.widgets.RemoveItemGroupDialog import RemoveItemGroupDialog
 
 
 class MainApplication(QMainWindow):
@@ -28,22 +28,25 @@ class MainApplication(QMainWindow):
             tileItem.setData(tilePath)
             self.tiles.appendRow(tileItem)
 
-        self.setWindowTitle("FUCK QT FUCK KIVY")
+        self.setWindowTitle("DoBLitz Master")
 
         leftSide = QWidget()
         leftBoxLayout = QVBoxLayout()
         blowAppButton = QPushButton("Взорвать приложение")
+        removeMapObjectsButton = QPushButton("Удалить группу объектов")
         tileListView = QListView()
         splitterWidget = QSplitter(Qt.Horizontal)
         self.renderer = MapRenderer(os.path.join(currentLocation, "instances.tmx"))
 
         blowAppButton.released.connect(self.blowAppButtonClick)
+        removeMapObjectsButton.released.connect(self.removeMapObjectsButtonClick)
 
         tileListView.setModel(self.tiles)
 
         # --- Left side of main screen ---
         leftSide.setLayout(leftBoxLayout)
         leftBoxLayout.addWidget(blowAppButton)
+        leftBoxLayout.addWidget(removeMapObjectsButton)
         leftBoxLayout.addWidget(tileListView)
 
         # --- Add Widgets to splitter ---
@@ -62,4 +65,10 @@ class MainApplication(QMainWindow):
                 mapObject.model.coord_y,
                 mapObject.model.sizeX,
                 mapObject.model.sizeY,
+                "blowAppGroup"
             )
+
+    def removeMapObjectsButtonClick(self):
+        if len(self.renderer.itemGroups) > 0:
+            dialog = RemoveItemGroupDialog(list(self.renderer.itemGroups.keys()), self.renderer, self)
+            dialog.show()
