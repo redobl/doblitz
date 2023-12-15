@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytmx
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -21,11 +23,11 @@ class MapRenderer(QGraphicsView):
         self.itemGroups: dict[str, QGraphicsItemGroup] = {}
 
         self.setRenderHint(QPainter.SmoothPixmapTransform)
-        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate) # noqa
-        self.setTransformationAnchor(QGraphicsView.NoAnchor) # noqa
+        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)  # noqa
+        self.setTransformationAnchor(QGraphicsView.NoAnchor)  # noqa
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.setCacheMode(QGraphicsView.CacheNone) # noqa
+        self.setCacheMode(QGraphicsView.CacheNone)  # noqa
         self.setMouseTracking(True)
 
         self.scene = MapScene()
@@ -36,9 +38,13 @@ class MapRenderer(QGraphicsView):
 
         # simple mouse tracker to show coordinates
         self.cursorCoordinatesLabel = QLabel(self)
-        self.cursorCoordinatesLabel.setStyleSheet("color: white; background-color: rgba(0, 0, 0, 50%);")
+        self.cursorCoordinatesLabel.setStyleSheet(
+            "color: white; background-color: rgba(0, 0, 0, 50%);"
+        )
         self.cursorCoordinatesLabel.setFont(QFont("SegoeUI", 10))
-        self.cursorCoordinatesLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding) # noqa
+        self.cursorCoordinatesLabel.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding
+        )  # noqa
         self.cursorCoordinatesLabel.setMinimumSize(QSize(250, 20))
         self.cursorCoordinatesLabel.move(5, 5)
 
@@ -60,6 +66,9 @@ class MapRenderer(QGraphicsView):
         return super().eventFilter(obj, event)
 
     def populateScene(self):
+        """
+        Draws map from .tmx file.
+        """
         for layer in self.tiledMap.layers:
             if not layer.visible:
                 continue
@@ -74,10 +83,13 @@ class MapRenderer(QGraphicsView):
                 if tileImage:
                     pixmap = QPixmap.fromImage(tileImage)
                     item = QGraphicsPixmapItem(pixmap)
-                    item.setPos(QPointF(tileX * self.TILE_SIZE, tileY * self.TILE_SIZE)) # noqa
+                    item.setPos(
+                        QPointF(tileX * self.TILE_SIZE, tileY * self.TILE_SIZE)
+                    )  # noqa
                     self.scene.addItem(item)
 
     def wheelEvent(self, event: QWheelEvent):
+        # scale map only if Ctrl button is pressed
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             zoomInFactor = 1.25
             zoomOutFactor = 1 / zoomInFactor
@@ -111,15 +123,31 @@ class MapRenderer(QGraphicsView):
             newPos = event.pos()
             if self.__oldMousePos:
                 delta = newPos - self.__oldMousePos
-                self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - delta.x())
-                self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
+                self.horizontalScrollBar().setValue(
+                    self.horizontalScrollBar().value() - delta.x()
+                )
+                self.verticalScrollBar().setValue(
+                    self.verticalScrollBar().value() - delta.y()
+                )
             self.__oldMousePos = newPos
 
     def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.restoreOverrideCursor()
 
-    def drawMapObject(self, x: int, y: int, width: int, height: int, groupName: str = None):
+    def drawMapObject(
+        self, x: int, y: int, width: int, height: int, groupName: Optional[str] = None
+    ):
+        """Draws an object on a view. Object is a rectangle.
+
+
+        Args:
+            x (int): x coordinate of object
+            y (int): y coordinate of object
+            width (int): width of rectangle
+            height (int): height of rectangle
+            groupName (Optional[str], optional): Adds an object to ItemGroup by name. Defaults to None.
+        """
         item = MapObject(x // 2, y // 2, width, height, 0.33)
         if groupName is None:
             self.scene.addItem(item)
@@ -131,6 +159,14 @@ class MapRenderer(QGraphicsView):
             self.itemGroups[groupName].addToGroup(item)
 
     def removeMapObjectGroup(self, groupName: str) -> bool:
+        """Removes whole ItemGroup from view.
+
+        Args:
+            groupName (str): group name that should be deleted
+
+        Returns:
+            bool: True if ItemGroup was successfully deleted. False otherwise.
+        """
         itemGroup = self.itemGroups.get(groupName, None)
         if itemGroup is None:
             return False
@@ -142,22 +178,30 @@ class MapRenderer(QGraphicsView):
 
 
 class MapObject(QGraphicsRectItem):
-    def __init__(self,
-                 x: int,
-                 y: int,
-                 width: int,
-                 height: int,
-                 opacity: float = 1.0,
-                 isSelectable: bool = True,
-                 *args, **kwargs):
+    def __init__(
+        self,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        opacity: float = 1.0,
+        isSelectable: bool = True,
+        *args,
+        **kwargs,
+    ):
         super().__init__(x, y, width, height, *args, **kwargs)
         self.setPos(x, y)
         self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
 
-        self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable) # noqa
+        self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable)  # noqa
         self.setAcceptHoverEvents(True)
 
-    def paint(self, painter: QPainter, option: QStyleOptionGraphicsItem, widget: QWidget | None = ...) -> None:
+    def paint(
+        self,
+        painter: QPainter,
+        option: QStyleOptionGraphicsItem,
+        widget: QWidget | None = ...,
+    ) -> None:
         painter.setBrush(self._brush)
         painter.drawRect(self.rect())
 

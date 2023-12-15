@@ -1,10 +1,18 @@
-from PySide6.QtWidgets import QComboBox, QDialog, QGridLayout, QPushButton, QErrorMessage
+from PySide6.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QErrorMessage,
+    QGridLayout,
+    QPushButton,
+)
 
 from GUI.widgets.MapRenderer import MapRenderer
 
 
 class RemoveItemGroupDialog(QDialog):
-    def __init__(self, groupList: list[str], renderer: MapRenderer, parent, *args, **kwargs):
+    def __init__(
+        self, groupList: list[str], renderer: MapRenderer, parent, *args, **kwargs
+    ):
         super().__init__(parent, *args, **kwargs)
         self.setWindowTitle("Удалить группу объектов")
         self.setFixedSize(220, 100)

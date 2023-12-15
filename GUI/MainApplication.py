@@ -65,10 +65,12 @@ class MainApplication(QMainWindow):
                 mapObject.model.coord_y,
                 mapObject.model.sizeX,
                 mapObject.model.sizeY,
-                "blowAppGroup"
+                "blowAppGroup",
             )
 
     def removeMapObjectsButtonClick(self):
         if len(self.renderer.itemGroups) > 0:
-            dialog = RemoveItemGroupDialog(list(self.renderer.itemGroups.keys()), self.renderer, self)
+            dialog = RemoveItemGroupDialog(
+                list(self.renderer.itemGroups.keys()), self.renderer, self
+            )
             dialog.show()
