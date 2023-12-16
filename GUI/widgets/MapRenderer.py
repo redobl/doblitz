@@ -5,13 +5,18 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import *
-from PySide6.QtWidgets import QStyleOptionGraphicsItem, QWidget
+from PySide6.QtWidgets import (
+    QGraphicsSceneMouseEvent,
+    QStyleOptionGraphicsItem,
+    QWidget,
+)
 
 from GUI.utils.QtTiledMap import QtTiledMap
 
 
 class MapScene(QGraphicsScene):
-    ...
+    def __init_subclass__(cls) -> None:
+        return super().__init_subclass__()
 
 
 class MapRenderer(QGraphicsView):
@@ -117,8 +122,10 @@ class MapRenderer(QGraphicsView):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
             self.__oldMousePos = event.pos()
+        event.ignore()
+        return super().mousePressEvent(event)
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QMouseEvent):
         if event.buttons() == Qt.MouseButton.MiddleButton:
             newPos = event.pos()
             if self.__oldMousePos:
@@ -130,10 +137,14 @@ class MapRenderer(QGraphicsView):
                     self.verticalScrollBar().value() - delta.y()
                 )
             self.__oldMousePos = newPos
+        event.ignore()
+        return super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.restoreOverrideCursor()
+        event.ignore()
+        return super().mouseReleaseEvent(event)
 
     def drawMapObject(
         self, x: int, y: int, width: int, height: int, groupName: Optional[str] = None
@@ -155,6 +166,8 @@ class MapRenderer(QGraphicsView):
         group = self.itemGroups.get(groupName, None)
         if group is None:
             self.itemGroups[groupName] = self.scene.createItemGroup([item])
+            # ensure that individual items will handle their own events
+            self.itemGroups[groupName].setHandlesChildEvents(False)
         else:
             self.itemGroups[groupName].addToGroup(item)
 
@@ -184,8 +197,8 @@ class MapObject(QGraphicsRectItem):
         y: int,
         width: int,
         height: int,
-        opacity: float = 1.0,
-        isSelectable: bool = True,
+        opacity: Optional[float] = 1.0,
+        isSelectable: Optional[bool] = True,
         *args,
         **kwargs,
     ):
