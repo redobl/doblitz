@@ -1,11 +1,12 @@
-#!/usr/bin/env python3
-
-from GUI.gui import TiledApp
+from PySide6.QtWidgets import QApplication
+import sys
+from GUI.MainApplication import MainApplication
 
 
 def main():
-    app = TiledApp()
-    app.run()
+    app = QApplication([])
+    mainApp = MainApplication()
+    sys.exit(app.exec())
 
 
 if __name__ == '__main__':

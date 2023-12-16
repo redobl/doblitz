@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Run GUI launcher",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/gui_launcher.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
