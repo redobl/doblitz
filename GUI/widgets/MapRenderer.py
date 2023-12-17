@@ -3,13 +3,7 @@ from typing import Optional
 import pytmx
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import *
-from PySide6.QtWidgets import (
-    QGraphicsSceneMouseEvent,
-    QStyleOptionGraphicsItem,
-    QWidget,
-)
 
 from GUI.utils.QtTiledMap import QtTiledMap
 
@@ -39,7 +33,7 @@ class MapRenderer(QGraphicsView):
         self.setScene(self.scene)
 
         self.tiledMap = QtTiledMap(tmxFilePath)
-        self.populateScene()
+        self.drawMap()
 
         # simple mouse tracker to show coordinates
         self.cursorCoordinatesLabel = QLabel(self)
@@ -70,7 +64,7 @@ class MapRenderer(QGraphicsView):
 
         return super().eventFilter(obj, event)
 
-    def populateScene(self):
+    def drawMap(self):
         """
         Draws map from .tmx file.
         """
@@ -92,6 +86,16 @@ class MapRenderer(QGraphicsView):
                         QPointF(tileX * self.TILE_SIZE, tileY * self.TILE_SIZE)
                     )  # noqa
                     self.scene.addItem(item)
+
+            pen = QPen(Qt.black)
+            pen.setStyle(Qt.DotLine)
+            pen.setWidth(15)
+
+            for x in range(0, self.tiledMap.width * self.TILE_SIZE, self.TILE_SIZE):
+                self.scene.addLine(x, 0, x, self.tiledMap.height * self.TILE_SIZE)
+
+            for y in range(0, self.tiledMap.height * self.TILE_SIZE, self.TILE_SIZE):
+                self.scene.addLine(0, y, self.tiledMap.width * self.TILE_SIZE, y)
 
     def wheelEvent(self, event: QWheelEvent):
         # scale map only if Ctrl button is pressed
