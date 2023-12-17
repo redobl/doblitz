@@ -48,6 +48,7 @@ class MapRenderer(QGraphicsView):
         self.cursorCoordinatesLabel.move(5, 5)
 
         self.viewport().installEventFilter(self)
+        self.scene.changed.connect(self.autocomputeSceneSize)
 
         self.__oldMousePos = None
 
@@ -140,6 +141,7 @@ class MapRenderer(QGraphicsView):
                 self.verticalScrollBar().setValue(
                     self.verticalScrollBar().value() - delta.y()
                 )
+                self.scene.update(self.mapToScene(self.rect()).boundingRect())
             self.__oldMousePos = newPos
         event.ignore()
         return super().mouseMoveEvent(event)
@@ -192,6 +194,32 @@ class MapRenderer(QGraphicsView):
         self.itemGroups.pop(groupName)
 
         return True
+
+    def autocomputeSceneSize(self, region):
+        widgetRectInScene = QRectF(
+            self.mapToScene(-20, -20),
+            self.mapToScene(self.rect().bottomRight() + QPoint(20, 20)),
+        )
+
+        newTopLeft = QPointF(self.scene.sceneRect().topLeft())
+        newBottomRight = QPointF(self.scene.sceneRect().bottomRight())
+
+        if self.scene.sceneRect().top() > widgetRectInScene.top():
+            newTopLeft.setY(widgetRectInScene.top())
+
+        # Check that the scene has a bigger limit in the bottom side
+        if self.scene.sceneRect().bottom() < widgetRectInScene.bottom():
+            newBottomRight.setY(widgetRectInScene.bottom())
+
+        # Check that the scene has a bigger limit in the left side
+        if self.scene.sceneRect().left() > widgetRectInScene.left():
+            newTopLeft.setX(widgetRectInScene.left())
+
+        # Check that the scene has a bigger limit in the right side
+        if self.scene.sceneRect().right() < widgetRectInScene.right():
+            newBottomRight.setX(widgetRectInScene.right())
+
+        self.scene.setSceneRect(QRectF(newTopLeft, newBottomRight))
 
 
 class MapObject(QGraphicsRectItem):
