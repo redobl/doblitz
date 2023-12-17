@@ -34,12 +34,14 @@ class MainApplication(QMainWindow):
         leftBoxLayout = QVBoxLayout()
         blowAppButton = QPushButton("Взорвать приложение")
         removeMapObjectsButton = QPushButton("Удалить группу объектов")
+        checkSelectedItems = QPushButton("Посмотреть выбранные объекты")
         tileListView = QListView()
         splitterWidget = QSplitter(Qt.Horizontal)
         self.renderer = MapRenderer(os.path.join(currentLocation, "instances.tmx"))
 
         blowAppButton.released.connect(self.blowAppButtonClick)
         removeMapObjectsButton.released.connect(self.removeMapObjectsButtonClick)
+        checkSelectedItems.released.connect(self.checkSelectedItemsButton)
 
         tileListView.setModel(self.tiles)
 
@@ -47,6 +49,7 @@ class MainApplication(QMainWindow):
         leftSide.setLayout(leftBoxLayout)
         leftBoxLayout.addWidget(blowAppButton)
         leftBoxLayout.addWidget(removeMapObjectsButton)
+        leftBoxLayout.addWidget(checkSelectedItems)
         leftBoxLayout.addWidget(tileListView)
 
         # --- Add Widgets to splitter ---
@@ -55,6 +58,9 @@ class MainApplication(QMainWindow):
 
         self.setCentralWidget(splitterWidget)
         self.show()
+
+    def checkSelectedItemsButton(self):
+        print(self.renderer.mapScene.selectedItems())
 
     def blowAppButtonClick(self):
         mapObjects = MapObject.select()
