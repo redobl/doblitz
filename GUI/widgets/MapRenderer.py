@@ -91,7 +91,7 @@ class MapRenderer(QGraphicsView):
 
             pen = QPen(Qt.black)
             pen.setStyle(Qt.DotLine)
-            pen.setWidth(1)
+            pen.setWidthF(0.8)
 
             for x in range(
                 0, self.tiledMap.width * self.TILE_SIZE + self.TILE_SIZE, self.TILE_SIZE
