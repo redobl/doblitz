@@ -49,6 +49,7 @@ class MapRenderer(QGraphicsView):
 
         self.viewport().installEventFilter(self)
         self.scene.changed.connect(self.autocomputeSceneSize)
+        self.scene.setBackgroundBrush(QBrush(QColor(18, 21, 30)))
 
         self.__oldMousePos = None
 
@@ -90,13 +91,19 @@ class MapRenderer(QGraphicsView):
 
             pen = QPen(Qt.black)
             pen.setStyle(Qt.DotLine)
-            pen.setWidth(15)
+            pen.setWidth(1)
 
-            for x in range(0, self.tiledMap.width * self.TILE_SIZE, self.TILE_SIZE):
-                self.scene.addLine(x, 0, x, self.tiledMap.height * self.TILE_SIZE)
+            for x in range(
+                0, self.tiledMap.width * self.TILE_SIZE + self.TILE_SIZE, self.TILE_SIZE
+            ):
+                self.scene.addLine(x, 0, x, self.tiledMap.height * self.TILE_SIZE, pen)
 
-            for y in range(0, self.tiledMap.height * self.TILE_SIZE, self.TILE_SIZE):
-                self.scene.addLine(0, y, self.tiledMap.width * self.TILE_SIZE, y)
+            for y in range(
+                0,
+                self.tiledMap.height * self.TILE_SIZE + self.TILE_SIZE,
+                self.TILE_SIZE,
+            ):
+                self.scene.addLine(0, y, self.tiledMap.width * self.TILE_SIZE, y, pen)
 
     def wheelEvent(self, event: QWheelEvent):
         # scale map only if Ctrl button is pressed
