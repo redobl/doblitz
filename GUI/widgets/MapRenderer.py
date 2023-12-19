@@ -3,13 +3,8 @@ from typing import Optional
 import pytmx
 from PySide6.QtCore import *
 from PySide6.QtGui import *
-from PySide6.QtGui import QPainter
 from PySide6.QtWidgets import *
-from PySide6.QtWidgets import (
-    QGraphicsSceneMouseEvent,
-    QStyleOptionGraphicsItem,
-    QWidget,
-)
+from PySide6.QtWidgets import QGraphicsSceneMouseEvent
 
 from GUI.utils.QtTiledMap import QtTiledMap
 
@@ -25,7 +20,10 @@ class MapRenderer(QGraphicsView):
     def __init__(self, tmxFilePath: str, *args, **kwargs) -> None:
         super(MapRenderer, self).__init__(*args, **kwargs)
 
-        self.itemGroups: dict[str, QGraphicsItemGroup] = {}
+        self.itemGroups: dict[str, list[MapObject]] = {}
+        self.tiledMap = QtTiledMap(tmxFilePath)
+        self.__oldMousePos = None
+        self.mapScene = MapScene()
 
         self.setRenderHint(QPainter.SmoothPixmapTransform)
         self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)  # noqa
@@ -34,12 +32,8 @@ class MapRenderer(QGraphicsView):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setCacheMode(QGraphicsView.CacheNone)  # noqa
         self.setMouseTracking(True)
-
-        self.scene = MapScene()
-        self.setScene(self.scene)
-
-        self.tiledMap = QtTiledMap(tmxFilePath)
-        self.populateScene()
+        self.setScene(self.mapScene)
+        self.drawMap()
 
         # simple mouse tracker to show coordinates
         self.cursorCoordinatesLabel = QLabel(self)
@@ -54,8 +48,14 @@ class MapRenderer(QGraphicsView):
         self.cursorCoordinatesLabel.move(5, 5)
 
         self.viewport().installEventFilter(self)
+        self.mapScene.changed.connect(self.autocomputeSceneSize)
+        self.mapScene.selectionChanged.connect(self.onSelectionChanged)
+        self.mapScene.setBackgroundBrush(QBrush(QColor(18, 21, 30)))
 
-        self.__oldMousePos = None
+    def onSelectionChanged(self):
+        items: list[QGraphicsItemGroup] = self.mapScene.selectedItems()
+        for item in items:
+            print(f"Item: {item}")
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         if obj == self.viewport() and event.type() == QEvent.Type.MouseMove:
@@ -70,7 +70,7 @@ class MapRenderer(QGraphicsView):
 
         return super().eventFilter(obj, event)
 
-    def populateScene(self):
+    def drawMap(self):
         """
         Draws map from .tmx file.
         """
@@ -91,7 +91,27 @@ class MapRenderer(QGraphicsView):
                     item.setPos(
                         QPointF(tileX * self.TILE_SIZE, tileY * self.TILE_SIZE)
                     )  # noqa
-                    self.scene.addItem(item)
+                    self.mapScene.addItem(item)
+
+            pen = QPen(Qt.black)
+            pen.setStyle(Qt.DotLine)
+            pen.setWidthF(0.8)
+
+            for x in range(
+                0, self.tiledMap.width * self.TILE_SIZE + self.TILE_SIZE, self.TILE_SIZE
+            ):
+                self.mapScene.addLine(
+                    x, 0, x, self.tiledMap.height * self.TILE_SIZE, pen
+                )
+
+            for y in range(
+                0,
+                self.tiledMap.height * self.TILE_SIZE + self.TILE_SIZE,
+                self.TILE_SIZE,
+            ):
+                self.mapScene.addLine(
+                    0, y, self.tiledMap.width * self.TILE_SIZE, y, pen
+                )
 
     def wheelEvent(self, event: QWheelEvent):
         # scale map only if Ctrl button is pressed
@@ -122,7 +142,6 @@ class MapRenderer(QGraphicsView):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
             self.__oldMousePos = event.pos()
-        event.ignore()
         return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event: QMouseEvent):
@@ -136,14 +155,13 @@ class MapRenderer(QGraphicsView):
                 self.verticalScrollBar().setValue(
                     self.verticalScrollBar().value() - delta.y()
                 )
+                self.mapScene.update(self.mapToScene(self.rect()).boundingRect())
             self.__oldMousePos = newPos
-        event.ignore()
         return super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.restoreOverrideCursor()
-        event.ignore()
         return super().mouseReleaseEvent(event)
 
     def drawMapObject(
@@ -161,15 +179,14 @@ class MapRenderer(QGraphicsView):
         """
         item = MapObject(x // 2, y // 2, width, height, 0.33)
         if groupName is None:
-            self.scene.addItem(item)
+            self.mapScene.addItem(item)
             return
         group = self.itemGroups.get(groupName, None)
         if group is None:
-            self.itemGroups[groupName] = self.scene.createItemGroup([item])
-            # ensure that individual items will handle their own events
-            self.itemGroups[groupName].setHandlesChildEvents(False)
+            self.itemGroups[groupName] = [item]
         else:
-            self.itemGroups[groupName].addToGroup(item)
+            self.itemGroups[groupName].append(item)
+        self.mapScene.addItem(item)
 
     def removeMapObjectGroup(self, groupName: str) -> bool:
         """Removes whole ItemGroup from view.
@@ -184,10 +201,39 @@ class MapRenderer(QGraphicsView):
         if itemGroup is None:
             return False
 
-        self.scene.removeItem(itemGroup)
+        for item in itemGroup:
+            self.mapScene.removeItem(item)
+
+        # self.mapScene.removeItem(itemGroup)
         self.itemGroups.pop(groupName)
 
         return True
+
+    def autocomputeSceneSize(self, region):
+        widgetRectInScene = QRectF(
+            self.mapToScene(-20, -20),
+            self.mapToScene(self.rect().bottomRight() + QPoint(20, 20)),
+        )
+
+        newTopLeft = QPointF(self.mapScene.sceneRect().topLeft())
+        newBottomRight = QPointF(self.mapScene.sceneRect().bottomRight())
+
+        if self.mapScene.sceneRect().top() > widgetRectInScene.top():
+            newTopLeft.setY(widgetRectInScene.top())
+
+        # Check that the scene has a bigger limit in the bottom side
+        if self.mapScene.sceneRect().bottom() < widgetRectInScene.bottom():
+            newBottomRight.setY(widgetRectInScene.bottom())
+
+        # Check that the scene has a bigger limit in the left side
+        if self.mapScene.sceneRect().left() > widgetRectInScene.left():
+            newTopLeft.setX(widgetRectInScene.left())
+
+        # Check that the scene has a bigger limit in the right side
+        if self.mapScene.sceneRect().right() < widgetRectInScene.right():
+            newBottomRight.setX(widgetRectInScene.right())
+
+        self.mapScene.setSceneRect(QRectF(newTopLeft, newBottomRight))
 
 
 class MapObject(QGraphicsRectItem):
@@ -217,6 +263,15 @@ class MapObject(QGraphicsRectItem):
     ) -> None:
         painter.setBrush(self._brush)
         painter.drawRect(self.rect())
+
+    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.setSelected(True)
+            print(self.isSelected())
+        return super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+        return super().mouseMoveEvent(event)
 
     def hoverEnterEvent(self, event):
         QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
