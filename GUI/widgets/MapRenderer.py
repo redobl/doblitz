@@ -31,6 +31,7 @@ class MapRenderer(QGraphicsView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setCacheMode(QGraphicsView.CacheNone)  # noqa
+        self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
         self.setMouseTracking(True)
         self.setScene(self.mapScene)
         self.drawMap()
@@ -49,7 +50,7 @@ class MapRenderer(QGraphicsView):
 
         self.viewport().installEventFilter(self)
         self.mapScene.changed.connect(self.autocomputeSceneSize)
-        self.mapScene.selectionChanged.connect(self.onSelectionChanged)
+        # self.mapScene.selectionChanged.connect(self.onSelectionChanged)
         self.mapScene.setBackgroundBrush(QBrush(QColor(18, 21, 30)))
 
     def onSelectionChanged(self):
@@ -142,6 +143,7 @@ class MapRenderer(QGraphicsView):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.setOverrideCursor(Qt.CursorShape.ClosedHandCursor)
             self.__oldMousePos = event.pos()
+            return
         return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event: QMouseEvent):
@@ -162,6 +164,7 @@ class MapRenderer(QGraphicsView):
     def mouseReleaseEvent(self, event: QMouseEvent):
         if event.button() == Qt.MouseButton.MiddleButton:
             QApplication.restoreOverrideCursor()
+
         return super().mouseReleaseEvent(event)
 
     def drawMapObject(
@@ -253,7 +256,9 @@ class MapObject(QGraphicsRectItem):
         self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
 
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable)  # noqa
-        self.setAcceptHoverEvents(True)
+        self.setAcceptHoverEvents(isSelectable)
+
+        self.shownData = {"x": self.x(), "y": self.y(), "name": "somename"}
 
     def paint(
         self,
@@ -264,14 +269,12 @@ class MapObject(QGraphicsRectItem):
         painter.setBrush(self._brush)
         painter.drawRect(self.rect())
 
-    def mousePressEvent(self, event: QGraphicsSceneMouseEvent) -> None:
+    def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self.setSelected(True)
-            print(self.isSelected())
-        return super().mousePressEvent(event)
-
-    def mouseMoveEvent(self, event: QGraphicsSceneMouseEvent) -> None:
-        return super().mouseMoveEvent(event)
+            if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+                self.setSelected(not self.isSelected())
+            else:
+                self.setSelected(True)
 
     def hoverEnterEvent(self, event):
         QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
