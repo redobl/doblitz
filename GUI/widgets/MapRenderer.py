@@ -254,7 +254,7 @@ class MapObject(QGraphicsRectItem):
         super().__init__(x, y, width, height, *args, **kwargs)
         self.setPos(x, y)
         self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
-
+        self._selectedBrush = QBrush(QColor(148, 87, 235, int(opacity * 255 * 2)))
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable)  # noqa
         self.setAcceptHoverEvents(isSelectable)
 
@@ -266,7 +266,10 @@ class MapObject(QGraphicsRectItem):
         option: QStyleOptionGraphicsItem,
         widget: QWidget | None = ...,
     ) -> None:
-        painter.setBrush(self._brush)
+        if self.isSelected():
+            painter.setBrush(self._selectedBrush)
+        else:
+            painter.setBrush(self._brush)
         painter.drawRect(self.rect())
 
     def mouseReleaseEvent(self, event: QGraphicsSceneMouseEvent) -> None:
