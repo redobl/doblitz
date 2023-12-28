@@ -6,6 +6,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from PySide6.QtWidgets import QGraphicsSceneMouseEvent
 
+from GUI.models.ObjectModels import MapObjectModel
 from GUI.utils.QtTiledMap import QtTiledMap
 
 
@@ -44,13 +45,12 @@ class MapRenderer(QGraphicsView):
         self.cursorCoordinatesLabel.setFont(QFont("SegoeUI", 10))
         self.cursorCoordinatesLabel.setSizePolicy(
             QSizePolicy.Expanding, QSizePolicy.Expanding
-        )  # noqa
+        )
         self.cursorCoordinatesLabel.setMinimumSize(QSize(250, 20))
         self.cursorCoordinatesLabel.move(5, 5)
 
         self.viewport().installEventFilter(self)
         self.mapScene.changed.connect(self.autocomputeSceneSize)
-        # self.mapScene.selectionChanged.connect(self.onSelectionChanged)
         self.mapScene.setBackgroundBrush(QBrush(QColor(18, 21, 30)))
 
     def onSelectionChanged(self):
@@ -180,7 +180,13 @@ class MapRenderer(QGraphicsView):
             height (int): height of rectangle
             groupName (Optional[str], optional): Adds an object to ItemGroup by name. Defaults to None.
         """
-        item = MapObject(x // 2, y // 2, width, height, 0.33)
+        model = MapObjectModel(
+            x = x // 2,
+            y = y // 2,
+            width = width,
+            height = height
+        )
+        item = MapObject(model, 0.33)
         if groupName is None:
             self.mapScene.addItem(item)
             return
@@ -207,7 +213,6 @@ class MapRenderer(QGraphicsView):
         for item in itemGroup:
             self.mapScene.removeItem(item)
 
-        # self.mapScene.removeItem(itemGroup)
         self.itemGroups.pop(groupName)
 
         return True
@@ -242,23 +247,20 @@ class MapRenderer(QGraphicsView):
 class MapObject(QGraphicsRectItem):
     def __init__(
         self,
-        x: int,
-        y: int,
-        width: int,
-        height: int,
+        objectModel: MapObjectModel,
         opacity: Optional[float] = 1.0,
         isSelectable: Optional[bool] = True,
         *args,
         **kwargs,
     ):
-        super().__init__(x, y, width, height, *args, **kwargs)
-        self.setPos(x, y)
+        super().__init__(objectModel.x, objectModel.y, objectModel.width, objectModel.height, *args, **kwargs)
+        self.objectModel = objectModel
+        self.setPos(objectModel.x, objectModel.y)
         self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
         self._selectedBrush = QBrush(QColor(148, 87, 235, int(opacity * 255 * 2)))
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable)  # noqa
         self.setAcceptHoverEvents(isSelectable)
 
-        self.shownData = {"x": self.x(), "y": self.y(), "name": "somename"}
 
     def paint(
         self,

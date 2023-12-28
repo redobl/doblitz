@@ -6,6 +6,7 @@ from PySide6.QtWidgets import *
 
 from common.game import MapObject as MapObjectDatabase
 from common.models import init_db
+from GUI.models.ObjectModels import MapObjectModel
 from GUI.widgets.MapRenderer import MapObject, MapRenderer
 from GUI.widgets.RemoveItemGroupDialog import RemoveItemGroupDialog
 
@@ -84,13 +85,13 @@ class MainApplication(QMainWindow):
             dialog.show()
 
     def onItemsSelectionChanged(self):
-        items: list[MapObject] = self.renderer.mapScene.selectedItems()
+        items: list[MapObjectModel] = [item.objectModel for item in self.renderer.mapScene.selectedItems()]
         self.selectedMapObjects.removeRows(0, self.selectedMapObjects.rowCount())
         for index, item in enumerate(items):
-            mainItem = QStandardItem(f"Объект на {item.x()};{item.y()}")
+            mainItem = QStandardItem(f"Объект на {item.x};{item.y}")
             mainItem.setEditable(False)
             
-            for key, value in item.shownData.items():
+            for key, value in item.model_dump().items():
                 parameter = QStandardItem(str(key))
                 parameter.setEditable(False)
                 parameterValue = QStandardItem(str(value))
