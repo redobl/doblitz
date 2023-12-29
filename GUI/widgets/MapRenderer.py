@@ -168,24 +168,14 @@ class MapRenderer(QGraphicsView):
         return super().mouseReleaseEvent(event)
 
     def drawMapObject(
-        self, x: int, y: int, width: int, height: int, groupName: Optional[str] = None
+        self, model: MapObjectModel, groupName: Optional[str] = None
     ):
         """Draws an object on a view. Object is a rectangle.
 
-
         Args:
-            x (int): x coordinate of object
-            y (int): y coordinate of object
-            width (int): width of rectangle
-            height (int): height of rectangle
+            model (MapObjectModel): map object model from GUI.models.MapObjectModel
             groupName (Optional[str], optional): Adds an object to ItemGroup by name. Defaults to None.
         """
-        model = MapObjectModel(
-            x = x // 2,
-            y = y // 2,
-            width = width,
-            height = height
-        )
         item = MapObject(model, 0.33)
         if groupName is None:
             self.mapScene.addItem(item)
@@ -255,7 +245,6 @@ class MapObject(QGraphicsRectItem):
     ):
         super().__init__(objectModel.x, objectModel.y, objectModel.width, objectModel.height, *args, **kwargs)
         self.objectModel = objectModel
-        self.setPos(objectModel.x, objectModel.y)
         self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
         self._selectedBrush = QBrush(QColor(148, 87, 235, int(opacity * 255 * 2)))
         self.setFlag(QGraphicsRectItem.ItemIsSelectable, isSelectable)  # noqa

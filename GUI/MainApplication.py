@@ -69,11 +69,17 @@ class MainApplication(QMainWindow):
         mapObjects = MapObjectDatabase.select()
 
         for mapObject in mapObjects:
+            objectModel = MapObjectModel(
+                obj_id = mapObject.model.obj_id,
+                name = mapObject.model.name,
+                description = mapObject.model.description,
+                x = mapObject.model.coord_x,
+                y = mapObject.model.coord_y,
+                width = mapObject.model.sizeX,
+                height = mapObject.model.sizeY,
+            )
             self.renderer.drawMapObject(
-                mapObject.model.coord_x,
-                mapObject.model.coord_y,
-                mapObject.model.sizeX,
-                mapObject.model.sizeY,
+                objectModel,
                 "blowAppGroup",
             )
 
@@ -88,7 +94,7 @@ class MainApplication(QMainWindow):
         items: list[MapObjectModel] = [item.objectModel for item in self.renderer.mapScene.selectedItems()]
         self.selectedMapObjects.removeRows(0, self.selectedMapObjects.rowCount())
         for index, item in enumerate(items):
-            mainItem = QStandardItem(f"Объект на {item.x};{item.y}")
+            mainItem = QStandardItem(item.name if item.name else f"Объект на {item.x};{item.y}")
             mainItem.setEditable(False)
             
             for key, value in item.model_dump().items():
