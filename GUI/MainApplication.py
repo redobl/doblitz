@@ -89,11 +89,13 @@ class MainApplication(QMainWindow):
         for index, item in enumerate(items):
             mainItem = QStandardItem(f"Объект на {item.x()};{item.y()}")
             mainItem.setEditable(False)
-            
+
             for key, value in item.shownData.items():
                 parameter = QStandardItem(str(key))
                 parameter.setEditable(False)
                 parameterValue = QStandardItem(str(value))
                 mainItem.appendRow([parameter, parameterValue])
             self.selectedMapObjects.appendRow(mainItem)
-            self.selectedMapObjectsView.setFirstColumnSpanned(index, self.selectedMapObjectsView.rootIndex(), True)
+            self.selectedMapObjectsView.setFirstColumnSpanned(
+                index, self.selectedMapObjectsView.rootIndex(), True
+            )
