@@ -69,10 +69,10 @@ class MainApplication(QMainWindow):
 
         for mapObject in mapObjects:
             self.renderer.drawMapObject(
-                mapObject.model.coord_x,
-                mapObject.model.coord_y,
-                mapObject.model.sizeX,
-                mapObject.model.sizeY,
+                mapObject.model.location_x,
+                mapObject.model.location_y,
+                mapObject.model.size_x,
+                mapObject.model.size_y,
                 "blowAppGroup",
             )
 
