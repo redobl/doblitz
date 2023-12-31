@@ -1,5 +1,6 @@
 import os
 
+from playhouse.shortcuts import model_to_dict
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
@@ -7,7 +8,7 @@ from PySide6.QtWidgets import *
 from common.game import MapObject as MapObjectDatabase
 from common.models import init_db
 from GUI.models.ObjectModels import MapObjectModel
-from GUI.widgets.MapRenderer import MapObject, MapRenderer
+from GUI.widgets.MapRenderer import MapRenderer
 from GUI.widgets.RemoveItemGroupDialog import RemoveItemGroupDialog
 
 
@@ -69,15 +70,7 @@ class MainApplication(QMainWindow):
         mapObjects = MapObjectDatabase.select()
 
         for mapObject in mapObjects:
-            objectModel = MapObjectModel(
-                obj_id = mapObject.model.obj_id,
-                name = mapObject.model.name,
-                description = mapObject.model.description,
-                location_x = mapObject.model.location_x,
-                location_y = mapObject.model.location_y,
-                size_x = mapObject.model.size_x,
-                size_y = mapObject.model.size_y,
-            )
+            objectModel = MapObjectModel(**model_to_dict(mapObject.model))
             self.renderer.drawMapObject(
                 objectModel,
                 "blowAppGroup",
