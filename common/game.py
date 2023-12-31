@@ -76,6 +76,14 @@ class GameObject(BaseArbitraryModel):
             return model_type.delete().execute()
         else:
             return model_type.delete().where(*criteria).execute()
+        
+    def update(self, **kwargs) -> int:
+        query = self.model.update(**kwargs)
+        return query.execute()
+    
+    # save() method is intentionally absent.
+    # Use update(), as overriding it will make cancelling changes
+    # before they applied possible.
 
     def delete(self):
         return self.model.delete_instance()
@@ -104,13 +112,11 @@ class Character(GameObject):
         return super().delete()
 
     def join_game(self):
-        self.model.in_game = True
-        self.model.save()
+        self.update(in_game=True)
         Game.in_game_chars.append(self)
 
     def leave_game(self):
-        self.model.in_game = False
-        self.model.save()
+        self.update(in_game=False)
         Game.in_game_chars.remove(self)
 
 
