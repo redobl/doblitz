@@ -22,12 +22,12 @@ class MapObjectModel(GameObjectModel):
     obj_type = peewee.CharField(null=True, index=True)
     obj_id = peewee.IntegerField(null=True, index=True)
 
-    coord_x = peewee.IntegerField(null=True)
-    coord_y = peewee.IntegerField(null=True)
+    location_x = peewee.IntegerField(null=True)
+    location_y = peewee.IntegerField(null=True)
     layer = peewee.IntegerField(default=0, null=True)
 
-    sizeX = peewee.IntegerField(default=4)
-    sizeY = peewee.IntegerField(default=4)
+    size_x = peewee.IntegerField(default=4)
+    size_y = peewee.IntegerField(default=4)
     height = peewee.IntegerField(default=0)
 
 

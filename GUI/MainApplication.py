@@ -103,4 +103,6 @@ class MainApplication(QMainWindow):
                 parameterValue = QStandardItem(str(value))
                 mainItem.appendRow([parameter, parameterValue])
             self.selectedMapObjects.appendRow(mainItem)
-            self.selectedMapObjectsView.setFirstColumnSpanned(index, self.selectedMapObjectsView.rootIndex(), True)
+            self.selectedMapObjectsView.setFirstColumnSpanned(
+                index, self.selectedMapObjectsView.rootIndex(), True
+            )
