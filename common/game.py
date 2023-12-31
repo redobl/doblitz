@@ -1,4 +1,4 @@
-from typing import Optional, get_type_hints
+from typing import Iterable, Optional, Self, Union, get_type_hints
 
 from common.misc import BaseArbitraryModel
 from common.models import CharacterModel, GameObjectModel, MapObjectModel
@@ -16,7 +16,7 @@ class Game(BaseArbitraryModel):
 class Player(BaseArbitraryModel):
     id: int
 
-    def select_characters(self, *criteria) -> map:
+    def select_characters(self, *criteria) -> Iterable["Character"]:
         return Character.select(CharacterModel.player_id == self.id, *criteria)
 
     def get_character(self, *criteria) -> "Character":
@@ -37,11 +37,11 @@ class GameObject(BaseArbitraryModel):
     model: GameObjectModel
 
     @classmethod
-    def _from_model(cls, model: GameObjectModel) -> "GameObject":
+    def _from_model(cls, model: GameObjectModel) -> Self:
         return cls(model=model)
 
     @classmethod
-    def select(cls, *criteria) -> map:
+    def select(cls, *criteria) -> Iterable[Self]:
         model_type = get_type_hints(cls)["model"]
         if len(criteria) == 0:
             return map(cls._from_model, list(model_type.select()))
@@ -49,12 +49,12 @@ class GameObject(BaseArbitraryModel):
             return map(cls._from_model, list(model_type.select().where(*criteria)))
 
     @classmethod
-    def get(cls, *criteria) -> "GameObject":
+    def get(cls, *criteria) -> Self:
         model_type = get_type_hints(cls)["model"]
         return cls._from_model(model_type.get(*criteria))
 
     @classmethod
-    def get_or_create(cls, **kwargs) -> "GameObject":
+    def get_or_create(cls, **kwargs) -> Self:
         model_type = get_type_hints(cls)["model"]
         get_or_create_res = model_type.get_or_create(**kwargs)
         return (cls._from_model(get_or_create_res[0]), get_or_create_res[1])
@@ -65,7 +65,7 @@ class GameObject(BaseArbitraryModel):
         return model_type.select().where(*criteria).count()
 
     @classmethod
-    def create(cls, **kwargs) -> "GameObject":
+    def create(cls, **kwargs) -> Self:
         model_type = get_type_hints(cls)["model"]
         return cls._from_model(model_type.create(**kwargs))
 
@@ -86,7 +86,7 @@ class Character(GameObject):
     map_object: Optional["MapObject"]
 
     @classmethod
-    def _from_model(cls, model: CharacterModel) -> "Character":
+    def _from_model(cls, model: CharacterModel) -> Self:
         map_object = MapObject.get_or_create(
             obj_type="character",
             obj_id=model.id,
@@ -124,7 +124,7 @@ class MapObject(GameObject):
 
     model: MapObjectModel
 
-    def get_game_object(self) -> Optional[GameObject]:
+    def get_game_object(self) -> Optional[Union[GameObject, Character]]:
         if self.model.obj_type == "character":
             return Character.get(CharacterModel.id == self.model.obj_id)
         return None
