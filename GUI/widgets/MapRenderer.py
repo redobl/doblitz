@@ -243,7 +243,7 @@ class MapObject(QGraphicsRectItem):
         *args,
         **kwargs,
     ):
-        super().__init__(objectModel.x, objectModel.y, objectModel.width, objectModel.height, *args, **kwargs)
+        super().__init__(objectModel.location_x, objectModel.location_y, objectModel.size_x, objectModel.size_y, *args, **kwargs)
         self.objectModel = objectModel
         self._brush = QBrush(QColor(0, 0, 0, int(opacity * 255)))
         self._selectedBrush = QBrush(QColor(148, 87, 235, int(opacity * 255 * 2)))

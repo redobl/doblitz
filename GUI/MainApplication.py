@@ -73,10 +73,10 @@ class MainApplication(QMainWindow):
                 obj_id = mapObject.model.obj_id,
                 name = mapObject.model.name,
                 description = mapObject.model.description,
-                x = mapObject.model.coord_x,
-                y = mapObject.model.coord_y,
-                width = mapObject.model.sizeX,
-                height = mapObject.model.sizeY,
+                location_x = mapObject.model.location_x,
+                location_y = mapObject.model.location_y,
+                size_x = mapObject.model.size_x,
+                size_y = mapObject.model.size_y,
             )
             self.renderer.drawMapObject(
                 objectModel,
@@ -94,7 +94,7 @@ class MainApplication(QMainWindow):
         items: list[MapObjectModel] = [item.objectModel for item in self.renderer.mapScene.selectedItems()]
         self.selectedMapObjects.removeRows(0, self.selectedMapObjects.rowCount())
         for index, item in enumerate(items):
-            mainItem = QStandardItem(item.name if item.name else f"Объект на {item.x};{item.y}")
+            mainItem = QStandardItem(item.name if item.name else f"Объект на {item.location_x};{item.location_y}")
             mainItem.setEditable(False)
             
             for key, value in item.model_dump().items():

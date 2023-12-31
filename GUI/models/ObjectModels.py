@@ -4,8 +4,8 @@ from pydantic import BaseModel
 
 
 class BaseObjectModel(BaseModel):
-    x: int
-    y: int
+    location_x: int
+    location_y: int
 
     name: Optional[str] = None
     description: Optional[str] = None
@@ -14,7 +14,7 @@ class BaseObjectModel(BaseModel):
         use_enum_values = True
 
 class MapObjectModel(BaseObjectModel):
-    width: int
-    height: int
+    size_x: int
+    size_y: int
 
     layer: Optional[int] = None
