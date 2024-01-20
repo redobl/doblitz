@@ -76,11 +76,11 @@ class GameObject(BaseArbitraryModel):
             return model_type.delete().execute()
         else:
             return model_type.delete().where(*criteria).execute()
-        
+
     def update(self, **kwargs) -> int:
         query = self.model.update(**kwargs)
         return query.execute()
-    
+
     # save() method is intentionally absent.
     # Use update(), as overriding it will make cancelling changes
     # before they applied possible.
@@ -96,8 +96,8 @@ class Character(GameObject):
     @classmethod
     def _from_model(cls, model: CharacterModel) -> Self:
         map_object = MapObject.get_or_create(
-            obj_type="character",
-            obj_id=model.id,
+            game_obj_type="character",
+            game_obj_id=model.id,
             defaults={
                 "height": 2,
             },
@@ -131,8 +131,8 @@ class MapObject(GameObject):
     model: MapObjectModel
 
     def get_game_object(self) -> Optional[Union[GameObject, Character]]:
-        if self.model.obj_type == "character":
-            return Character.get(CharacterModel.id == self.model.obj_id)
+        if self.model.game_obj_type == "character":
+            return Character.get(CharacterModel.id == self.model.game_obj_id)
         return None
 
     def get_display_name(self):
