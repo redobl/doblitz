@@ -49,6 +49,22 @@ class MapRenderer(QGraphicsView):
         self.cursorCoordinatesLabel.setMinimumSize(QSize(250, 20))
         self.cursorCoordinatesLabel.move(5, 5)
 
+        self.layerSliderLabel = QLabel(self)
+        self.layerSliderLabel.setStyleSheet(
+            "color: white; background-color: rgba(0, 0, 0, 50%);"
+        )
+        self.layerSliderLabel.setFont(QFont("SegoeUI", 10))
+        self.layerSliderLabel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.layerSliderLabel.setMinimumSize(QSize(100, 20))
+        self.layerSliderLabel.move(5, 35)
+        self.layerSliderLabel.setText("Layer: 0")
+
+        self.layerSlider = QSlider(Qt.Vertical, self)
+        self.layerSlider.setRange(-1, 128)
+        self.layerSlider.setValue(0)
+        self.layerSlider.setGeometry(5, 75, 20, 256)
+        self.layerSlider.valueChanged.connect(self.onLayerSliderChanged)
+
         self.viewport().installEventFilter(self)
         self.mapScene.changed.connect(self.autocomputeSceneSize)
         self.mapScene.setBackgroundBrush(QBrush(QColor(18, 21, 30)))
@@ -57,6 +73,28 @@ class MapRenderer(QGraphicsView):
         items: list[QGraphicsItemGroup] = self.mapScene.selectedItems()
         for item in items:
             print(f"Item: {item}")
+
+    def onLayerSliderChanged(self, value):
+        for item in self.mapScene.items():
+            if isinstance(item, MapObject):
+                if value == -1:
+                    item.setVisible(True)
+                    item.setOpacity(1)
+                    continue
+
+                if item.objectModel.bottom_layer <= value <= item.objectModel.top_layer:
+                    item.setVisible(True)
+                    item.setOpacity(1)
+                elif item.objectModel.bottom_layer - value  == 1:
+                    item.setVisible(True)
+                    item.setOpacity(0.33)
+                elif value - item.objectModel.top_layer == 1:
+                    item.setVisible(True)
+                    item.setOpacity(0.66)
+                else:
+                    item.setVisible(False)
+                    item.setOpacity(1)
+        self.layerSliderLabel.setText(f"Layer: {value}")
 
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         if obj == self.viewport() and event.type() == QEvent.Type.MouseMove:
