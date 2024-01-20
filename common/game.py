@@ -78,7 +78,10 @@ class GameObject(BaseArbitraryModel):
             return model_type.delete().where(*criteria).execute()
 
     def update(self, **kwargs) -> int:
-        query = self.model.update(**kwargs)
+        for k, v in kwargs.items():
+            setattr(self.model, k, v)
+        # ugly as hell! class's id is field specifier, while instance's id is actual value
+        query = self.model.update(**kwargs).where(type(self.model).id == self.model.id)
         return query.execute()
 
     # save() method is intentionally absent.
