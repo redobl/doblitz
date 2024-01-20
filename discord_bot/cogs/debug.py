@@ -26,9 +26,8 @@ class DebugCog(commands.Cog, name="Отладка"):
         with db.atomic():
             map_objects = MapObject.select()
             for obj in map_objects:
-                max_layer = obj.model.layer + obj.model.height
                 to_send.append(
-                    f"{obj.get_display_name()} ({obj.model.location_x}, {obj.model.location_y}, {obj.model.layer} - {max_layer})"
+                    f"{obj.get_display_name()} ({obj.model.location_x}, {obj.model.location_y}, {obj.model.bottom_layer} - {obj.model.top_layer})"
                 )
         await ctx.send("```\n" + "\n".join(to_send) + "\n```")
 

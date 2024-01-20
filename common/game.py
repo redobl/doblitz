@@ -99,7 +99,8 @@ class Character(GameObject):
             game_obj_type="character",
             game_obj_id=model.id,
             defaults={
-                "height": 2,
+                "bottom_layer": 0,
+                "top_layer": 2,
             },
         )[0]
         return cls(model=model, map_object=map_object)
