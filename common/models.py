@@ -19,16 +19,20 @@ class GameObjectModel(BaseModel):
 
 
 class MapObjectModel(GameObjectModel):
-    obj_type = peewee.CharField(null=True, index=True)
-    obj_id = peewee.IntegerField(null=True, index=True)
+    game_obj_type = peewee.CharField(null=True)
+    game_obj_id = peewee.IntegerField(null=True, index=True)
 
+    # if either of these is null, object is not on map
     location_x = peewee.IntegerField(null=True)
     location_y = peewee.IntegerField(null=True)
-    layer = peewee.IntegerField(default=0, null=True)
 
     size_x = peewee.IntegerField(default=4)
     size_y = peewee.IntegerField(default=4)
-    height = peewee.IntegerField(default=0)
+
+    bottom_layer = peewee.IntegerField(
+        default=0, null=True  # null = infinite-height object
+    )
+    top_layer = peewee.IntegerField(default=0)
 
 
 class CharacterModel(GameObjectModel):
@@ -36,6 +40,7 @@ class CharacterModel(GameObjectModel):
     player_id = peewee.IntegerField(null=True, index=True)
     active = peewee.BooleanField(default=True)
 
+    # here null = infinite
     hp = peewee.IntegerField(default=100, null=True)
     max_hp = peewee.IntegerField(default=100, null=True)
     ap = peewee.IntegerField(default=100, null=True)
