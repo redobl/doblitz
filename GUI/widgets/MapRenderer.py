@@ -49,6 +49,7 @@ class MapRenderer(QGraphicsView):
         self.cursorCoordinatesLabel.setMinimumSize(QSize(250, 20))
         self.cursorCoordinatesLabel.move(5, 5)
 
+        # layers slider
         self.layerSliderLabel = QLabel(self)
         self.layerSliderLabel.setStyleSheet(
             "color: white; background-color: rgba(0, 0, 0, 50%);"
@@ -62,8 +63,16 @@ class MapRenderer(QGraphicsView):
         self.layerSlider = QSlider(Qt.Vertical, self)
         self.layerSlider.setRange(-1, 128)
         self.layerSlider.setValue(0)
-        self.layerSlider.setGeometry(5, 75, 20, 256)
+        self.layerSlider.setGeometry(5, 85, 20, 256)
         self.layerSlider.valueChanged.connect(self.onLayerSliderChanged)
+
+        plusButton = QPushButton("+", self)
+        plusButton.setGeometry(2, 60, 25, 25)
+        plusButton.clicked.connect(lambda: self.layerSlider.setValue(self.layerSlider.value() + 1))
+        
+        minusButton = QPushButton("-", self)
+        minusButton.setGeometry(2, 341, 25, 25)
+        minusButton.clicked.connect(lambda: self.layerSlider.setValue(self.layerSlider.value() - 1))
 
         self.viewport().installEventFilter(self)
         self.mapScene.changed.connect(self.autocomputeSceneSize)
