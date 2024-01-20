@@ -17,4 +17,5 @@ class MapObjectModel(BaseObjectModel):
     size_x: int
     size_y: int
 
-    layer: Optional[int] = None
+    bottom_layer: Optional[int] = None
+    top_layer: int
