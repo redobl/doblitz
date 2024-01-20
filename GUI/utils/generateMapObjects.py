@@ -20,11 +20,13 @@ def main():
     MapObject.clear()
     for i in progressBar(range(10000), "Generating: "):
         coords = (random.randint(0, MAP_SIZE[0]), random.randint(0, MAP_SIZE[1]))
+        bottom_layer = random.randint(0, 128)
         MapObject.create(
             name=f"Object {i}", 
             location_x=coords[0], 
             location_y=coords[1],
-            layer=random.randint(0, 128),
+            bottom_layer=bottom_layer,
+            top_layer=bottom_layer + random.randint(0, 5),
             height=random.randint(0, 2)
         )
 
