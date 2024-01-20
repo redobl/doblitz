@@ -1,5 +1,6 @@
 from typing import Iterable, Optional, Self, Union, get_type_hints
 
+from common.content import abilities, content_helper
 from common.misc import BaseArbitraryModel
 from common.models import CharacterModel, GameObjectModel, MapObjectModel
 
@@ -107,6 +108,15 @@ class Character(GameObject):
             },
         )[0]
         return cls(model=model, map_object=map_object)
+
+    @classmethod
+    def create(cls, **kwargs) -> Self:
+        character = super().create(**kwargs)
+        abilities = content_helper.content_list_to_json(
+            content_helper.default_abilities()
+        )
+        character.update(abilities=abilities)
+        return character
 
     def delete(self):
         if self.model.in_game:
