@@ -41,16 +41,22 @@ class CharacterModel(GameObjectModel):
     active = peewee.BooleanField(default=True)
 
     # here null = infinite
-    hp = peewee.IntegerField(default=100, null=True)
+    hp = peewee.IntegerField(default=100, null=True)  # Health Points
     max_hp = peewee.IntegerField(default=100, null=True)
-    ap = peewee.IntegerField(default=100, null=True)
+    ep = peewee.IntegerField(default=100, null=True)  # Energy Points
+    max_ep = peewee.IntegerField(default=100, null=True)
+    ap = peewee.IntegerField(default=100, null=True)  # Action Points*100
     max_ap = peewee.IntegerField(default=100, null=True)
+    mp = peewee.IntegerField(default=200, null=True)  # Movement Points*100
+    max_mp = peewee.IntegerField(default=200, null=True)
 
     inventory = peewee.CharField(default="{}")
     inventory_size = peewee.IntegerField(default=10)
 
     abilities = peewee.CharField(default="{}")
-    max_abilities = peewee.IntegerField(default=10)
+
+    passives = peewee.CharField(default="{}")
+    max_passives = peewee.IntegerField(default=10)
 
     in_game = peewee.BooleanField(default=False)
 
